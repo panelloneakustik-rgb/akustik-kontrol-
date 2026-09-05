@@ -3,23 +3,22 @@ import { Facebook, Instagram, Twitter, Phone, MapPin } from "lucide-react";
 
 function BrandMark() {
   return (
-    <svg viewBox="0 0 72 70" className="h-[52px] w-[54px] shrink-0" aria-hidden>
+    <svg viewBox="0 0 78 70" className="h-[54px] w-[60px] shrink-0" aria-hidden>
       <defs>
         <clipPath id="ak-footer-tri">
-          <path d="M36 3.2 70 67.8H2Z" />
+          <path d="M6 4v62h64Z" />
         </clipPath>
       </defs>
-      <path d="M36 3.2 70 67.8H2Z" fill="#C2302A" />
+      <path d="M6 4v62h64Z" fill="#D33B28" />
       <g
         clipPath="url(#ak-footer-tri)"
         fill="none"
         stroke="#F7F4EF"
-        strokeWidth="3.8"
-        strokeLinecap="butt"
+        strokeWidth="5.2"
       >
-        <path d="M6 68c11-15 27-29 44-35" />
-        <path d="M6 68c15-22 35-40 56-46" />
-        <path d="M6 68c19-28 43-50 66-56" />
+        <path d="M6 50a20 20 0 0 1 20 16" />
+        <path d="M6 36a34 34 0 0 1 34 30" />
+        <path d="M6 20a50 50 0 0 1 50 46" />
       </g>
     </svg>
   );
@@ -67,13 +66,18 @@ export default function Footer() {
       <div className="px-4 sm:px-6 lg:px-8 py-10 flex flex-col items-center text-center md:flex-row md:text-left md:flex-wrap md:items-center md:justify-between gap-8 max-w-6xl mx-auto">
         <Link href="/" className="flex items-center gap-3 shrink-0">
           <BrandMark />
-          <span className="flex flex-col items-stretch text-left text-ink">
-            <span className="font-sans font-extrabold text-[17px] sm:text-[19px] leading-none tracking-[0.04em] uppercase">
+          <span className="flex flex-col items-stretch text-left text-black">
+            <span className="font-display font-semibold text-[18px] sm:text-[21px] leading-none tracking-[0.08em] uppercase">
               AKUSTİK KONTROL
             </span>
-            <span className="my-[5px] h-[2px] w-full bg-[#C2302A]" />
-            <span className="font-sans font-medium text-[8px] sm:text-[9px] leading-none tracking-[0.195em] uppercase">
-              SES YALITIM SİSTEMLERİ
+            <span className="mt-[6px] mb-[5px] h-px w-full bg-[#7A1E28]" />
+            <span className="flex items-center gap-1.5">
+              <svg viewBox="0 0 8 8" className="h-2 w-2 shrink-0" aria-hidden>
+                <path d="M4 .4 7.6 7.2H.4Z" fill="#D33B28" />
+              </svg>
+              <span className="font-sans font-medium text-[8px] sm:text-[9px] leading-none tracking-[0.185em] uppercase">
+                SES YALITIM SİSTEMLERİ
+              </span>
             </span>
           </span>
         </Link>
