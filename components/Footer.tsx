@@ -1,6 +1,30 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Facebook, Instagram, Twitter, Phone, MapPin } from "lucide-react";
+
+function BrandMark() {
+  return (
+    <svg viewBox="0 0 72 70" className="h-[52px] w-[54px] shrink-0" aria-hidden>
+      <defs>
+        <clipPath id="ak-footer-tri">
+          <path d="M36 3.2 70 67.8H2Z" />
+        </clipPath>
+      </defs>
+      <path d="M36 3.2 70 67.8H2Z" fill="#C2302A" />
+      <g
+        clipPath="url(#ak-footer-tri)"
+        fill="none"
+        stroke="#F7F4EF"
+        strokeWidth="3.8"
+        strokeLinecap="butt"
+      >
+        <path d="M6 68c11-15 27-29 44-35" />
+        <path d="M6 68c15-22 35-40 56-46" />
+        <path d="M6 68c19-28 43-50 66-56" />
+      </g>
+    </svg>
+  );
+}
+
 const SOCIAL_LINKS = [
   { label: "Pinterest", href: "https://tr.pinterest.com/akustikkontrol/", icon: "pinterest" as const },
   { label: "X", href: "https://x.com/AkustikKontrol", icon: Twitter },
@@ -41,17 +65,16 @@ export default function Footer() {
   return (
     <footer className="mt-16 border-t border-ink/10 bg-cream">
       <div className="px-4 sm:px-6 lg:px-8 py-10 flex flex-col items-center text-center md:flex-row md:text-left md:flex-wrap md:items-center md:justify-between gap-8 max-w-6xl mx-auto">
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <Image
-            src="/logo-mark.png"
-            alt=""
-            width={76}
-            height={70}
-            className="h-12 sm:h-14 w-auto object-contain"
-          />
-          <span className="font-display text-xl text-ink text-left leading-none">
-            AKUSTİK KONTROL
-            <span className="block text-[10px] tracking-[0.25em] font-sans mt-1">SES YALITIM SİSTEMLERİ</span>
+        <Link href="/" className="flex items-center gap-3 shrink-0">
+          <BrandMark />
+          <span className="flex flex-col items-stretch text-left text-ink">
+            <span className="font-sans font-extrabold text-[17px] sm:text-[19px] leading-none tracking-[0.04em] uppercase">
+              AKUSTİK KONTROL
+            </span>
+            <span className="my-[5px] h-[2px] w-full bg-[#C2302A]" />
+            <span className="font-sans font-medium text-[8px] sm:text-[9px] leading-none tracking-[0.195em] uppercase">
+              SES YALITIM SİSTEMLERİ
+            </span>
           </span>
         </Link>
 
