@@ -47,7 +47,7 @@ export default function Footer() {
             alt=""
             width={76}
             height={70}
-            className="h-10 w-auto object-contain"
+            className="h-12 sm:h-14 w-auto object-contain"
           />
           <span className="font-display text-xl text-ink text-left leading-none">
             AKUSTİK KONTROL
