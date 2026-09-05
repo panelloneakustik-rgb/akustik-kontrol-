@@ -66,9 +66,13 @@ export default function Footer() {
             <Phone size={16} />
             0 216 630 21 41
           </a>
-          <span className="flex items-center gap-2 text-right max-w-xs">
-            <MapPin size={16} className="shrink-0" />
-            İnkılap Mah. Göktan Sk. Taş Apt. No:7 A Ümraniye/İstanbul
+          <span className="inline-flex items-start gap-2 text-left">
+            <MapPin size={16} className="mt-0.5 shrink-0" />
+            <span>
+              İnkılap Mah. Göktan Sk. Taş Apt. No:7 A
+              <br />
+              Ümraniye/İstanbul
+            </span>
           </span>
         </div>
       </div>
