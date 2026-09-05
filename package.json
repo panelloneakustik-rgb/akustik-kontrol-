@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0 --port 43147",
     "build": "opennextjs-cloudflare build",
+    "build:next": "next build",
     "start": "next start --hostname 0.0.0.0 --port 43147",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
