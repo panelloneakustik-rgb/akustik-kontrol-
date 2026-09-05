@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Facebook, Instagram, MapPin, Phone } from "lucide-react";
+import { MapPin, Phone } from "lucide-react";
 import { storeInfo } from "@/lib/catalog";
 
 const social = [
@@ -24,12 +24,22 @@ const social = [
   {
     label: "Facebook",
     href: "https://www.facebook.com/akustikkontrol",
-    icon: <Facebook size={18} />,
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M14 2h4a1 1 0 0 1 1 1v3h-3a2 2 0 0 0-2 2v3h5l-1 4h-4v8h-4v-8H7v-4h3V8a6 6 0 0 1 4-6z" />
+      </svg>
+    ),
   },
   {
     label: "Instagram",
     href: "https://www.instagram.com/akustikkontrol/",
-    icon: <Instagram size={18} />,
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect width="20" height="20" x="2" y="2" rx="5" />
+        <circle cx="12" cy="12" r="4" />
+        <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" />
+      </svg>
+    ),
   },
 ];
 

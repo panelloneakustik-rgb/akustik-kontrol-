@@ -53,10 +53,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    /* Hydrate from localStorage after mount (SSR-safe). */
+    /* eslint-disable react-hooks/set-state-in-effect */
     setCart(readJson<CartItem[]>(CART_KEY, []));
     setFavorites(readJson<string[]>(FAV_KEY, []));
     setUser(readJson<User | null>(USER_KEY, null));
     setReady(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   useEffect(() => {
