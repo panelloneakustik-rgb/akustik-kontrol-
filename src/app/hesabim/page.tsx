@@ -4,18 +4,26 @@ import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function AccountPage() {
-  const { user, logout, ready, cartCount, favorites } = useStore();
+  const { user, logout, cartCount, favorites } = useStore();
   const router = useRouter();
 
-  useEffect(() => {
-    if (ready && !user) router.replace("/giris");
-  }, [ready, user, router]);
-
-  if (!ready || !user) {
-    return <p className="px-4 py-16 text-center text-sm text-ink/50">Yükleniyor…</p>;
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-16 text-center">
+        <h1 className="font-display text-3xl">Hesabım</h1>
+        <p className="mt-3 text-sm text-ink/60">
+          Siparişlerinizi ve favorilerinizi görmek için giriş yapın.
+        </p>
+        <Link
+          href="/giris"
+          className="mt-6 inline-flex h-11 items-center bg-burgundy px-6 text-sm text-white hover:bg-burgundy-dark"
+        >
+          Giriş Yap
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -29,8 +37,8 @@ export default function AccountPage() {
         <p>Sepette {cartCount} ürün</p>
         <p>Favorilerde {favorites.length} ürün</p>
         <p className="text-ink/50">
-          Üyelik bu sürüde tarayıcınızda saklanır. Sipariş ve keşif için mağazayı
-          arayabilir veya WhatsApp’tan yazabilirsiniz.
+          Üyelik tarayıcınızda saklanır. Sipariş ve keşif için mağazayı arayabilir
+          veya WhatsApp’tan yazabilirsiniz.
         </p>
       </div>
       <div className="mt-6 flex gap-3">

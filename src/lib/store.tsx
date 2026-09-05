@@ -4,21 +4,20 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
+  useSyncExternalStore,
 } from "react";
 import { products, type Product } from "@/lib/catalog";
 
 const CART_KEY = "ak_cart";
 const FAV_KEY = "ak_favs";
 const USER_KEY = "ak_user";
+const EVENT = "ak-store";
 
 export type CartItem = { slug: string; qty: number };
 export type User = { name: string; email: string };
 
 type StoreContextValue = {
-  ready: boolean;
   cart: CartItem[];
   favorites: string[];
   user: User | null;
@@ -37,61 +36,87 @@ type StoreContextValue = {
 
 const StoreContext = createContext<StoreContextValue | null>(null);
 
-function readJson<T>(key: string, fallback: T): T {
+const emptyCart: CartItem[] = [];
+const emptyFavs: string[] = [];
+
+let cartSnap: CartItem[] = emptyCart;
+let cartRaw: string | null | undefined;
+let favSnap: string[] = emptyFavs;
+let favRaw: string | null | undefined;
+let userSnap: User | null = null;
+let userRaw: string | null | undefined;
+
+function snapshotJson<T>(
+  key: string,
+  fallback: T,
+  cachedRaw: string | null | undefined,
+  cachedValue: T
+): { raw: string | null; value: T } {
+  const raw = localStorage.getItem(key);
+  if (raw === cachedRaw) return { raw, value: cachedValue };
   try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
+    return { raw, value: raw ? (JSON.parse(raw) as T) : fallback };
   } catch {
-    return fallback;
+    return { raw, value: fallback };
   }
 }
 
+function getCart() {
+  if (typeof window === "undefined") return emptyCart;
+  const next = snapshotJson(CART_KEY, emptyCart, cartRaw, cartSnap);
+  cartRaw = next.raw;
+  cartSnap = next.value;
+  return cartSnap;
+}
+
+function getFavs() {
+  if (typeof window === "undefined") return emptyFavs;
+  const next = snapshotJson(FAV_KEY, emptyFavs, favRaw, favSnap);
+  favRaw = next.raw;
+  favSnap = next.value;
+  return favSnap;
+}
+
+function getUser() {
+  if (typeof window === "undefined") return null;
+  const next = snapshotJson<User | null>(USER_KEY, null, userRaw, userSnap);
+  userRaw = next.raw;
+  userSnap = next.value;
+  return userSnap;
+}
+
+function writeJson(key: string, value: unknown) {
+  localStorage.setItem(key, JSON.stringify(value));
+  window.dispatchEvent(new Event(EVENT));
+}
+
+function subscribe(onStoreChange: () => void) {
+  window.addEventListener(EVENT, onStoreChange);
+  window.addEventListener("storage", onStoreChange);
+  return () => {
+    window.removeEventListener(EVENT, onStoreChange);
+    window.removeEventListener("storage", onStoreChange);
+  };
+}
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [ready, setReady] = useState(false);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    /* Hydrate from localStorage after mount (SSR-safe). */
-    /* eslint-disable react-hooks/set-state-in-effect */
-    setCart(readJson<CartItem[]>(CART_KEY, []));
-    setFavorites(readJson<string[]>(FAV_KEY, []));
-    setUser(readJson<User | null>(USER_KEY, null));
-    setReady(true);
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, []);
-
-  useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-  }, [cart, ready]);
-
-  useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem(FAV_KEY, JSON.stringify(favorites));
-  }, [favorites, ready]);
-
-  useEffect(() => {
-    if (!ready) return;
-    if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
-    else localStorage.removeItem(USER_KEY);
-  }, [user, ready]);
+  const cart = useSyncExternalStore(subscribe, getCart, () => emptyCart);
+  const favorites = useSyncExternalStore(subscribe, getFavs, () => emptyFavs);
+  const user = useSyncExternalStore(subscribe, getUser, () => null);
 
   const addToCart = useCallback((slug: string, qty = 1) => {
-    setCart((prev) => {
-      const found = prev.find((i) => i.slug === slug);
-      if (found) {
-        return prev.map((i) =>
-          i.slug === slug ? { ...i, qty: i.qty + qty } : i
-        );
-      }
-      return [...prev, { slug, qty }];
-    });
+    const prev = getCart();
+    const found = prev.find((i) => i.slug === slug);
+    const next = found
+      ? prev.map((i) => (i.slug === slug ? { ...i, qty: i.qty + qty } : i))
+      : [...prev, { slug, qty }];
+    writeJson(CART_KEY, next);
   }, []);
 
   const setQty = useCallback((slug: string, qty: number) => {
-    setCart((prev) =>
+    const prev = getCart();
+    writeJson(
+      CART_KEY,
       qty <= 0
         ? prev.filter((i) => i.slug !== slug)
         : prev.map((i) => (i.slug === slug ? { ...i, qty } : i))
@@ -99,13 +124,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const removeFromCart = useCallback((slug: string) => {
-    setCart((prev) => prev.filter((i) => i.slug !== slug));
+    writeJson(
+      CART_KEY,
+      getCart().filter((i) => i.slug !== slug)
+    );
   }, []);
 
-  const clearCart = useCallback(() => setCart([]), []);
+  const clearCart = useCallback(() => writeJson(CART_KEY, []), []);
 
   const toggleFavorite = useCallback((slug: string) => {
-    setFavorites((prev) =>
+    const prev = getFavs();
+    writeJson(
+      FAV_KEY,
       prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]
     );
   }, []);
@@ -116,13 +146,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const login = useCallback((email: string, name?: string) => {
-    setUser({
+    writeJson(USER_KEY, {
       email,
       name: name?.trim() || email.split("@")[0],
     });
   }, []);
 
-  const logout = useCallback(() => setUser(null), []);
+  const logout = useCallback(() => {
+    localStorage.removeItem(USER_KEY);
+    window.dispatchEvent(new Event(EVENT));
+  }, []);
 
   const cartProducts = useMemo(
     () =>
@@ -144,7 +177,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo(
     () => ({
-      ready,
       cart,
       favorites,
       user,
@@ -161,7 +193,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       logout,
     }),
     [
-      ready,
       cart,
       favorites,
       user,

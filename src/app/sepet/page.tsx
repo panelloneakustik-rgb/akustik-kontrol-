@@ -9,17 +9,13 @@ import Link from "next/link";
 import { useState } from "react";
 
 export default function CartPage() {
-  const { cartProducts, setQty, removeFromCart, clearCart, ready } = useStore();
+  const { cartProducts, setQty, removeFromCart, clearCart } = useStore();
   const [ordered, setOrdered] = useState(false);
 
   const total = cartProducts.reduce(
     (sum, { product, qty }) => sum + discountedPrice(product) * qty,
     0
   );
-
-  if (!ready) {
-    return <p className="px-4 py-16 text-center text-sm text-ink/50">Yükleniyor…</p>;
-  }
 
   if (ordered) {
     return (

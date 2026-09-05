@@ -3,7 +3,6 @@
 import { Breadcrumb } from "@/components/breadcrumb";
 import { ProductGrid } from "@/components/product-grid";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   discountedPrice,
   formatTL,
@@ -144,14 +143,15 @@ export default function ProductDetailPage() {
                 <Plus size={16} />
               </button>
             </div>
-            <Button
+            <button
+              type="button"
               disabled={product.stock <= 0}
               onClick={() => {
                 addToCart(product.slug, qty);
                 setAdded(true);
-                setTimeout(() => setAdded(false), 1400);
+                window.setTimeout(() => setAdded(false), 1400);
               }}
-              className="h-11 flex-1 rounded-none bg-burgundy text-white hover:bg-burgundy-dark sm:flex-none sm:px-8"
+              className="flex h-11 flex-1 items-center justify-center gap-2 bg-burgundy px-6 text-sm text-white hover:bg-burgundy-dark disabled:opacity-60 sm:flex-none"
             >
               {added ? (
                 <>
@@ -162,18 +162,18 @@ export default function ProductDetailPage() {
                   <ShoppingBag size={16} /> Sepete Ekle
                 </>
               )}
-            </Button>
-            <Button
-              variant="outline"
+            </button>
+            <button
+              type="button"
               onClick={() => toggleFavorite(product.slug)}
-              className="h-11 rounded-none border-ink/20"
+              className="flex h-11 items-center gap-2 border border-ink/20 px-4 text-sm hover:border-burgundy"
             >
               <Heart
                 size={16}
                 className={fav ? "fill-burgundy text-burgundy" : ""}
               />
               {fav ? "Favoride" : "Favorile"}
-            </Button>
+            </button>
           </div>
           <p className="mt-6 text-sm text-ink/60">
             Keşif ve uygulama için 0 216 630 21 41 numaralı hattı arayın. İstanbul

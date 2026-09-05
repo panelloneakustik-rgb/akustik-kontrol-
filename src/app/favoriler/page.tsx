@@ -5,11 +5,7 @@ import { useStore } from "@/lib/store";
 import Link from "next/link";
 
 export default function FavoritesPage() {
-  const { favoriteProducts, ready } = useStore();
-
-  if (!ready) {
-    return <p className="px-4 py-16 text-center text-sm text-ink/50">Yükleniyor…</p>;
-  }
+  const { favoriteProducts } = useStore();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">

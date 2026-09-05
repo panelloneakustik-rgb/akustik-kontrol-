@@ -7,7 +7,6 @@ import { useState } from "react";
 import { discountedPrice, formatTL, type Product } from "@/lib/catalog";
 import { useStore } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function ProductCard({ product }: { product: Product }) {
@@ -69,15 +68,15 @@ export function ProductCard({ product }: { product: Product }) {
             )}
           </p>
         </Link>
-        <Button
+        <button
           type="button"
           disabled={product.stock <= 0 || added}
           onClick={() => {
             addToCart(product.slug);
             setAdded(true);
-            setTimeout(() => setAdded(false), 1400);
+            window.setTimeout(() => setAdded(false), 1400);
           }}
-          className="mt-3 h-11 w-full rounded-none bg-burgundy text-white hover:bg-burgundy-dark"
+          className="mt-3 flex h-11 w-full items-center justify-center gap-2 bg-burgundy text-sm text-white hover:bg-burgundy-dark disabled:opacity-60"
         >
           {product.stock <= 0 ? (
             "Stokta yok"
@@ -90,7 +89,7 @@ export function ProductCard({ product }: { product: Product }) {
               <ShoppingBag size={16} /> Sepete Ekle
             </>
           )}
-        </Button>
+        </button>
       </div>
     </article>
   );
