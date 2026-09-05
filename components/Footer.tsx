@@ -2,24 +2,23 @@ import Link from "next/link";
 import { Facebook, Instagram, Twitter, Phone, MapPin } from "lucide-react";
 
 function BrandMark() {
+  const red = "#D3402E";
+  const cream = "#F7F4EF";
   return (
-    <svg viewBox="0 0 78 70" className="h-[54px] w-[60px] shrink-0" aria-hidden>
+    <svg viewBox="0 0 92 72" className="h-[72px] w-[92px] shrink-0" aria-hidden>
       <defs>
         <clipPath id="ak-footer-tri">
-          <path d="M6 4v62h64Z" />
+          <path d="M4 4v64h64Z" />
         </clipPath>
       </defs>
-      <path d="M6 4v62h64Z" fill="#D33B28" />
-      <g
-        clipPath="url(#ak-footer-tri)"
-        fill="none"
-        stroke="#F7F4EF"
-        strokeWidth="5.2"
-      >
-        <path d="M6 50a20 20 0 0 1 20 16" />
-        <path d="M6 36a34 34 0 0 1 34 30" />
-        <path d="M6 20a50 50 0 0 1 50 46" />
+      <path d="M4 4v64h64Z" fill={red} />
+      <g clipPath="url(#ak-footer-tri)" fill="none" stroke={cream} strokeWidth="4.4">
+        <path d="M4 56a12 12 0 0 1 12 12" />
+        <path d="M4 44a24 24 0 0 1 24 24" />
+        <path d="M4 30a38 38 0 0 1 38 38" />
+        <path d="M4 14a54 54 0 0 1 54 54" />
       </g>
+      <path d="M72 52 88 68H68Z" fill="#E25A32" />
     </svg>
   );
 }
@@ -64,20 +63,15 @@ export default function Footer() {
   return (
     <footer className="mt-16 border-t border-ink/10 bg-cream">
       <div className="px-4 sm:px-6 lg:px-8 py-10 flex flex-col items-center text-center md:flex-row md:text-left md:flex-wrap md:items-center md:justify-between gap-8 max-w-6xl mx-auto">
-        <Link href="/" className="flex items-center gap-3 shrink-0">
+        <Link href="/" className="flex items-center gap-4 shrink-0">
           <BrandMark />
           <span className="flex flex-col items-stretch text-left text-black">
-            <span className="font-display font-semibold text-[18px] sm:text-[21px] leading-none tracking-[0.08em] uppercase">
+            <span className="font-sans font-bold text-[22px] sm:text-[26px] leading-none tracking-[0.06em] uppercase">
               AKUSTİK KONTROL
             </span>
-            <span className="mt-[6px] mb-[5px] h-px w-full bg-[#7A1E28]" />
-            <span className="flex items-center gap-1.5">
-              <svg viewBox="0 0 8 8" className="h-2 w-2 shrink-0" aria-hidden>
-                <path d="M4 .4 7.6 7.2H.4Z" fill="#D33B28" />
-              </svg>
-              <span className="font-sans font-medium text-[8px] sm:text-[9px] leading-none tracking-[0.185em] uppercase">
-                SES YALITIM SİSTEMLERİ
-              </span>
+            <span className="mt-[7px] mb-[6px] h-[2px] w-full bg-[#D3402E]" />
+            <span className="font-sans font-normal text-[10px] sm:text-[11px] leading-none tracking-[0.2em] uppercase">
+              SES YALITIM SİSTEMLERİ
             </span>
           </span>
         </Link>
