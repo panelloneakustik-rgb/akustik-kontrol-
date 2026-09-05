@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Category, Product, ProductImage, Favorite, Story, HeroSlide, ColorSwatch, Review
+from .models import Category, Product, ProductImage, Story, HeroSlide, ColorSwatch, Review
 
 
 @admin.register(Category)
@@ -84,11 +84,6 @@ class ProductAdmin(admin.ModelAdmin):
         return "-"
 
     thumb.short_description = "Görsel"
-
-
-@admin.register(Favorite)
-class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ("session_key", "product", "created_at")
 
 
 @admin.register(Story)
