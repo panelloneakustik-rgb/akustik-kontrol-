@@ -1,27 +1,6 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Facebook, Instagram, Twitter, Phone, MapPin } from "lucide-react";
-
-function BrandMark() {
-  const red = "#D3402E";
-  const cream = "#F7F4EF";
-  return (
-    <svg viewBox="0 0 92 72" className="h-[72px] w-[92px] shrink-0" aria-hidden>
-      <defs>
-        <clipPath id="ak-footer-tri">
-          <path d="M4 4v64h64Z" />
-        </clipPath>
-      </defs>
-      <path d="M4 4v64h64Z" fill={red} />
-      <g clipPath="url(#ak-footer-tri)" fill="none" stroke={cream} strokeWidth="4.4">
-        <path d="M4 56a12 12 0 0 1 12 12" />
-        <path d="M4 44a24 24 0 0 1 24 24" />
-        <path d="M4 30a38 38 0 0 1 38 38" />
-        <path d="M4 14a54 54 0 0 1 54 54" />
-      </g>
-      <path d="M72 52 88 68H68Z" fill="#E25A32" />
-    </svg>
-  );
-}
 
 const SOCIAL_LINKS = [
   { label: "Pinterest", href: "https://tr.pinterest.com/akustikkontrol/", icon: "pinterest" as const },
@@ -63,17 +42,14 @@ export default function Footer() {
   return (
     <footer className="mt-16 border-t border-ink/10 bg-cream">
       <div className="px-4 sm:px-6 lg:px-8 py-10 flex flex-col items-center text-center md:flex-row md:text-left md:flex-wrap md:items-center md:justify-between gap-8 max-w-6xl mx-auto">
-        <Link href="/" className="flex items-center gap-4 shrink-0">
-          <BrandMark />
-          <span className="flex flex-col items-stretch text-left text-black">
-            <span className="font-sans font-bold text-[22px] sm:text-[26px] leading-none tracking-[0.06em] uppercase">
-              AKUSTİK KONTROL
-            </span>
-            <span className="mt-[7px] mb-[6px] h-[2px] w-full bg-[#D3402E]" />
-            <span className="font-sans font-normal text-[10px] sm:text-[11px] leading-none tracking-[0.2em] uppercase">
-              SES YALITIM SİSTEMLERİ
-            </span>
-          </span>
+        <Link href="/" className="shrink-0">
+          <Image
+            src="/logo.png"
+            alt="Akustik Kontrol"
+            width={500}
+            height={73}
+            className="h-8 w-auto max-w-[160px] object-contain sm:h-11 sm:max-w-[280px]"
+          />
         </Link>
 
         <div className="flex flex-col items-center gap-3">
