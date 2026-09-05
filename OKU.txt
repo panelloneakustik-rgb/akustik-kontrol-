@@ -1,0 +1,22 @@
+AKUSTIK KONTROL — gelistirici notu
+==================================
+
+1. Python: https://www.python.org/downloads/  PATH isaretle
+2. Node.js LTS: https://nodejs.org/
+3. GitHub'dan klonla (zip degil, tercih edilen):
+   https://github.com/panelloneakustik-rgb/akustik-kontrol
+   Collaborator davetini kabul et.
+
+4. SADECE kokteki BASLAT.bat — cift tikla.
+   frontend'de "npm run dev" YAZMA.
+
+5. Tarayici: http://localhost:3000
+
+Kod yaz, sonra:
+  git add .
+  git commit -m "..."
+  git push origin main
+  → site Cloudflare'de yenilenir
+  → API icin Xiao / sen VM'de: git pull + sudo systemctl restart akustik
+
+.env ve .env.local GitHub'a gitmez. Canli sifreleri sorma, Xiao verir.

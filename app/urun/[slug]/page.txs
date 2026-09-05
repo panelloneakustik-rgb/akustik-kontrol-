@@ -1,0 +1,67 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ShoppingCart } from "lucide-react";
+import { getProductBySlug, formatTL } from "@/lib/api";
+import ProductGallery from "@/components/ProductGallery";
+
+export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+
+  let product;
+  try {
+    product = await getProductBySlug(slug);
+  } catch {
+    notFound();
+  }
+
+  const images = product.images && product.images.length > 0 ? product.images : product.image ? [product.image] : [];
+  const hasDiscount = product.discount_percent > 0;
+
+  return (
+    <main className="px-8 py-10 max-w-6xl mx-auto">
+      <nav className="text-xs text-ink/50 mb-6">
+        <Link href="/" className="hover:text-burgundy">Ana Sayfa</Link>
+        <span className="mx-2">/</span>
+        <span>{product.category?.name ?? product.category}</span>
+        <span className="mx-2">/</span>
+        <span className="text-ink">{product.name}</span>
+      </nav>
+
+      <div className="grid md:grid-cols-2 gap-10">
+        <ProductGallery images={images} alt={product.name} />
+
+        <div className="flex flex-col gap-4">
+          {product.is_new && (
+            <span className="self-start bg-gray-200 text-ink text-xs font-medium px-2 py-1">Yeni Ürün</span>
+          )}
+          <h1 className="font-display text-3xl text-ink">{product.name}</h1>
+
+          <div className="flex items-baseline gap-3">
+            {hasDiscount && (
+              <span className="text-base text-ink/40 line-through">{formatTL(product.price)}</span>
+            )}
+            <span className="text-2xl font-bold text-ink">{formatTL(product.discounted_price)}</span>
+            {hasDiscount && (
+              <span className="bg-burgundy text-white text-xs font-semibold px-2 py-1">
+                % {product.discount_percent} İndirim
+              </span>
+            )}
+          </div>
+
+          {product.description && (
+            <p className="text-sm text-ink/70 leading-relaxed">{product.description}</p>
+          )}
+
+          <p className="text-xs text-ink/50">
+            {product.stock > 0 ? `Stokta ${product.stock} adet` : "Stokta yok"}
+          </p>
+
+          <button className="mt-4 flex items-center justify-center gap-2 bg-burgundy hover:bg-burgundy-dark text-white text-sm font-medium py-3 px-6 transition-colors max-w-xs">
+            <ShoppingCart size={18} />
+            Sepete Ekle
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
