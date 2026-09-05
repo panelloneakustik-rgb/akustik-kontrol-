@@ -27,3 +27,10 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
+
+try {
+  const { initOpenNextCloudflareForDev } = require("@opennextjs/cloudflare");
+  initOpenNextCloudflareForDev();
+} catch {
+  // Local/dev without the Cloudflare adapter installed.
+}
