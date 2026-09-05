@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Facebook, Instagram, Twitter, Phone, MapPin } from "lucide-react";
 const SOCIAL_LINKS = [
   { label: "Pinterest", href: "https://tr.pinterest.com/akustikkontrol/", icon: "pinterest" as const },
@@ -40,9 +41,18 @@ export default function Footer() {
   return (
     <footer className="mt-16 border-t border-ink/10 bg-cream">
       <div className="px-4 sm:px-6 lg:px-8 py-10 flex flex-col items-center text-center md:flex-row md:text-left md:flex-wrap md:items-center md:justify-between gap-8 max-w-6xl mx-auto">
-        <Link href="/" className="font-display text-xl text-ink shrink-0">
-          AKUSTİK KONTROL
-          <span className="block text-[10px] tracking-[0.25em] font-sans -mt-1">SES YALITIM SİSTEMLERİ</span>
+        <Link href="/" className="flex items-center gap-3 shrink-0">
+          <Image
+            src="/logo.png"
+            alt=""
+            width={500}
+            height={73}
+            className="h-12 w-12 object-cover object-left"
+          />
+          <span className="font-display text-xl text-ink text-left">
+            AKUSTİK KONTROL
+            <span className="block text-[10px] tracking-[0.25em] font-sans -mt-1">SES YALITIM SİSTEMLERİ</span>
+          </span>
         </Link>
 
         <div className="flex flex-col items-center gap-3">
