@@ -41,18 +41,14 @@ export default function Footer() {
   return (
     <footer className="mt-16 border-t border-ink/10 bg-cream">
       <div className="px-4 sm:px-6 lg:px-8 py-10 flex flex-col items-center text-center md:flex-row md:text-left md:flex-wrap md:items-center md:justify-between gap-8 max-w-6xl mx-auto">
-        <Link href="/" className="flex items-center gap-3 shrink-0">
+        <Link href="/" className="shrink-0">
           <Image
-            src="/logo.png"
-            alt=""
-            width={500}
-            height={73}
-            className="h-12 w-12 object-cover object-left"
+            src="/logo-full.png"
+            alt="Akustik Kontrol — Ses Yalıtım Sistemleri"
+            width={385}
+            height={86}
+            className="h-14 sm:h-[72px] w-auto max-w-[min(100%,320px)] object-contain object-left"
           />
-          <span className="font-display text-xl text-ink text-left">
-            AKUSTİK KONTROL
-            <span className="block text-[10px] tracking-[0.25em] font-sans -mt-1">SES YALITIM SİSTEMLERİ</span>
-          </span>
         </Link>
 
         <div className="flex flex-col items-center gap-3">
