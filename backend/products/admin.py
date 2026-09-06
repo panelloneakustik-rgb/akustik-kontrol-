@@ -66,10 +66,10 @@ class ProductAdmin(admin.ModelAdmin):
         (None, {"fields": ("category", "name", "slug", "description", "image")}),
         ("Fiyat", {"fields": ("price", "discount_percent")}),
         (
-            "Sünger özellikleri",
+            "Ürün özellikleri",
             {
-                "fields": ("density", "dimensions", "thickness", "material", "color"),
-                "description": "Yoğunluk, ebat ve kalınlık her üründe farklı olabilir. Boş bırakılan satırlar sitede görünmez.",
+                "fields": ("product_model", "thickness", "dimensions", "density", "material", "production", "color"),
+                "description": "Sitede şu sırayla görünür: Model, Kalınlık, Ebat, Yoğunluk, Yapı, Üretim. Boş satırlar gizlenir.",
             },
         ),
         ("Durum", {"fields": ("is_new", "is_bestseller", "stock")}),

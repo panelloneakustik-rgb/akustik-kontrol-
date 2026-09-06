@@ -66,26 +66,43 @@ class Product(models.Model):
         help_text="Ürün sayfasında “X iş günü içinde kargoda” olarak görünür.",
     )
 
-    # Technical specs shown in the product-detail spec table (all optional)
-    density = models.CharField(
-        max_length=80,
+    # Spec table on the product page (all optional; empty rows are hidden)
+    product_model = models.CharField(
+        max_length=120,
         blank=True,
-        verbose_name="Ürün yoğunluğu",
-        help_text="Örn. 30 kg/m³ — sünger yoğunluğu ürüne göre değişir.",
-    )
-    dimensions = models.CharField(
-        max_length=100,
-        blank=True,
-        verbose_name="Ebat",
-        help_text="Örn. 100 x 100 cm",
+        verbose_name="Model",
+        help_text="Örn. Piramit desen",
     )
     thickness = models.CharField(
         max_length=80,
         blank=True,
         verbose_name="Kalınlık",
-        help_text="Örn. 4 cm, 5 cm",
+        help_text="Örn. 40 mm",
     )
-    material = models.CharField(max_length=100, blank=True, help_text="e.g. Kumaş kaplı sünger")
+    dimensions = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="Ebat",
+        help_text="Örn. 100x100 cm",
+    )
+    density = models.CharField(
+        max_length=80,
+        blank=True,
+        verbose_name="Yoğunluk",
+        help_text="Örn. 60 dns",
+    )
+    material = models.CharField(
+        max_length=120,
+        blank=True,
+        verbose_name="Yapı",
+        help_text="Örn. Yanmaz akustik sünger",
+    )
+    production = models.CharField(
+        max_length=160,
+        blank=True,
+        verbose_name="Üretim",
+        help_text="Örn. %100 yerli, üretici garantili",
+    )
     color = models.CharField(max_length=100, blank=True, help_text="e.g. Antrasit Gri")
     color_swatches = models.ManyToManyField(
         ColorSwatch, blank=True, related_name="products",
