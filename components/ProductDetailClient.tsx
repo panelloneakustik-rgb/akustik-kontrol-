@@ -56,7 +56,9 @@ export default function ProductDetailClient() {
   const images = product.images && product.images.length > 0 ? product.images : product.image ? [product.image] : [];
   const hasDiscount = product.discount_percent > 0;
   const specs = [
-    { label: "Ölçü", value: product.dimensions },
+    { label: "Yoğunluk", value: product.density },
+    { label: "Ebat", value: product.dimensions },
+    { label: "Kalınlık", value: product.thickness },
     { label: "Malzeme", value: product.material },
     { label: "Renk", value: product.color },
   ].filter((s) => s.value);

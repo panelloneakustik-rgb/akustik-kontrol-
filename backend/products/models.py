@@ -67,7 +67,24 @@ class Product(models.Model):
     )
 
     # Technical specs shown in the product-detail spec table (all optional)
-    dimensions = models.CharField(max_length=100, blank=True, help_text="e.g. 60 x 30 x 4 cm")
+    density = models.CharField(
+        max_length=80,
+        blank=True,
+        verbose_name="Ürün yoğunluğu",
+        help_text="Örn. 30 kg/m³ — sünger yoğunluğu ürüne göre değişir.",
+    )
+    dimensions = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="Ebat",
+        help_text="Örn. 100 x 100 cm",
+    )
+    thickness = models.CharField(
+        max_length=80,
+        blank=True,
+        verbose_name="Kalınlık",
+        help_text="Örn. 4 cm, 5 cm",
+    )
     material = models.CharField(max_length=100, blank=True, help_text="e.g. Kumaş kaplı sünger")
     color = models.CharField(max_length=100, blank=True, help_text="e.g. Antrasit Gri")
     color_swatches = models.ManyToManyField(

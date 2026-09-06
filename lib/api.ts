@@ -94,6 +94,8 @@ export async function getProductBySlug(slug: string) {
     description: string;
     stock: number;
     dimensions: string;
+    density: string;
+    thickness: string;
     material: string;
     color: string;
     related_products: Product[];

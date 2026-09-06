@@ -65,7 +65,13 @@ class ProductAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {"fields": ("category", "name", "slug", "description", "image")}),
         ("Fiyat", {"fields": ("price", "discount_percent")}),
-        ("Teknik Özellikler", {"fields": ("dimensions", "material", "color")}),
+        (
+            "Sünger özellikleri",
+            {
+                "fields": ("density", "dimensions", "thickness", "material", "color"),
+                "description": "Yoğunluk, ebat ve kalınlık her üründe farklı olabilir. Boş bırakılan satırlar sitede görünmez.",
+            },
+        ),
         ("Durum", {"fields": ("is_new", "is_bestseller", "stock")}),
         (
             "Kargo",
