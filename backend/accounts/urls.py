@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     path("register/", views.RegisterView.as_view(), name="register"),
     path("login/", views.login_view, name="login"),
+    path("google/config/", views.google_config, name="google-config"),
     path("google/", views.google_login, name="google-login"),
     path("refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("me/", views.me_view, name="me"),

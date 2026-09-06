@@ -1,7 +1,7 @@
 "use client";
 
 import Script from "next/script";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 
@@ -23,21 +23,43 @@ declare global {
   }
 }
 
-const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim();
+const ENV_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || "";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "https://api.akustikkontrol.com.tr/api";
 
 export default function GoogleSignInButton({ redirectTo = "/hesabim" }: { redirectTo?: string }) {
   const { loginWithGoogle } = useAuth();
   const router = useRouter();
   const buttonRef = useRef<HTMLDivElement>(null);
   const started = useRef(false);
+  const [clientId, setClientId] = useState(ENV_CLIENT_ID);
+  const [configReady, setConfigReady] = useState(Boolean(ENV_CLIENT_ID));
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (ENV_CLIENT_ID) return;
+    let cancelled = false;
+    fetch(`${API_BASE}/auth/google/config/`)
+      .then((res) => res.json())
+      .then((data: { client_id?: string | null }) => {
+        if (!cancelled && data.client_id) setClientId(data.client_id);
+      })
+      .catch(() => {
+        if (!cancelled) setError("Google girişi şu an yüklenemedi.");
+      })
+      .finally(() => {
+        if (!cancelled) setConfigReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const initGoogle = useCallback(() => {
-    if (!CLIENT_ID || !window.google || !buttonRef.current || started.current) return;
+    if (!clientId || !window.google || !buttonRef.current || started.current) return;
     started.current = true;
 
     window.google.accounts.id.initialize({
-      client_id: CLIENT_ID,
+      client_id: clientId,
       auto_select: false,
       ux_mode: "popup",
       callback: async (response) => {
@@ -62,12 +84,17 @@ export default function GoogleSignInButton({ redirectTo = "/hesabim" }: { redire
       locale: "tr",
       width: String(Math.min(400, Math.max(240, buttonRef.current.parentElement?.clientWidth || 320))),
     });
-  }, [loginWithGoogle, redirectTo, router]);
+  }, [clientId, loginWithGoogle, redirectTo, router]);
 
-  if (!CLIENT_ID) {
+  useEffect(() => {
+    started.current = false;
+    initGoogle();
+  }, [initGoogle]);
+
+  if (configReady && !clientId) {
     return (
       <p className="text-xs text-ink/40 text-center">
-        Google girişi yapılandırılmadı (NEXT_PUBLIC_GOOGLE_CLIENT_ID).
+        Google girişi yapılandırılmadı.
       </p>
     );
   }

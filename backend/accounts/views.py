@@ -71,6 +71,14 @@ def login_view(request):
     return Response({"user": UserSerializer(user).data, **_tokens_for(user)})
 
 
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def google_config(request):
+    """Public OAuth client id — GIS needs it in the browser."""
+    client_id = (settings.GOOGLE_CLIENT_ID or "").strip()
+    return Response({"enabled": bool(client_id), "client_id": client_id or None})
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 @throttle_classes([LoginRateThrottle])
