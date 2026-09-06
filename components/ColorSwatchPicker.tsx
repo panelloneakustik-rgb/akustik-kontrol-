@@ -19,7 +19,7 @@ export default function ColorSwatchPicker({
       <span className="text-sm font-medium text-ink">
         Renk{selected ? `: ${selected.name || selected.code}` : " seçin"}
       </span>
-      <div className="flex flex-wrap gap-3 items-center overflow-visible py-5">
+      <div className="flex flex-wrap gap-3.5 items-center overflow-visible py-8">
         {swatches.map((s) => {
           const isSelected = selected?.id === s.id;
           return (
@@ -29,10 +29,10 @@ export default function ColorSwatchPicker({
               onClick={() => onSelect(s)}
               title={s.name || s.code}
               aria-pressed={isSelected}
-              className={`relative shrink-0 w-12 h-12 rounded-full overflow-hidden origin-center ${
+              className={`relative shrink-0 w-[3.25rem] h-[3.25rem] rounded-full overflow-hidden origin-center ${
                 isSelected
-                  ? "z-20 scale-[1.85] border-[3px] border-burgundy shadow-[0_8px_22px_rgba(122,30,40,0.28)]"
-                  : "z-0 scale-100 border-2 border-white/80 shadow-sm hover:scale-125 hover:shadow-md active:scale-[1.4]"
+                  ? "z-20 scale-[2.25] border-[3px] border-burgundy shadow-[0_10px_28px_rgba(122,30,40,0.32)]"
+                  : "z-0 scale-100 border-2 border-white/80 shadow-sm hover:scale-125 hover:shadow-md active:scale-[1.45]"
               }`}
               style={{
                 transition:
