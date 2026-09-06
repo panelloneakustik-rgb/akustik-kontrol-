@@ -1,4 +1,4 @@
-"""Parse Luca e-Arşiv PDF/mail text and match AK-#### order codes."""
+"""Parse TÜRMOB / e-Arşiv PDF/mail text and match AK-#### order codes."""
 from __future__ import annotations
 
 import email

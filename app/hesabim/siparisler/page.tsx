@@ -209,6 +209,9 @@ function OrderCard({
               {returns.length} iade / iptal talebi
             </span>
           )}
+          {order.has_invoice && (
+            <span className="text-xs text-green-800">E-fatura hazır</span>
+          )}
         </div>
         <div className="flex items-center gap-4">
           <span className={`text-xs font-medium px-2 py-1 rounded-full ${STATUS_COLORS[order.status] ?? "bg-gray-200 text-ink"}`}>
@@ -250,20 +253,32 @@ function OrderCard({
               <p className="mt-2">Takip no: {order.tracking_number}</p>
             ) : null}
           </div>
-          {order.has_invoice ? (
-            <button
-              type="button"
-              onClick={handleInvoice}
-              disabled={invoiceLoading}
-              className="self-start inline-flex items-center gap-2 bg-burgundy text-white text-sm font-medium py-2.5 px-4 hover:bg-burgundy-dark transition-colors disabled:opacity-60"
-            >
-              <FileText size={16} />
-              {invoiceLoading ? "Açılıyor..." : "E-Fatura indir"}
-            </button>
-          ) : order.invoice_status === "pending" ? (
-            <p className="text-xs text-ink/50">E-faturanız hazırlanıyor. Kesildikten sonra burada görünecek.</p>
-          ) : null}
-          {invoiceError && <p className="text-xs text-burgundy">{invoiceError}</p>}
+          <div className="border-t border-ink/10 pt-3 flex flex-col gap-2">
+            <h3 className="text-sm font-semibold text-ink">E-Fatura</h3>
+            {order.has_invoice ? (
+              <>
+                {order.invoice_number ? (
+                  <p className="text-xs text-ink/50">Fatura no: {order.invoice_number}</p>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleInvoice}
+                  disabled={invoiceLoading}
+                  className="self-start inline-flex items-center gap-2 bg-burgundy text-white text-sm font-medium py-2.5 px-4 hover:bg-burgundy-dark transition-colors disabled:opacity-60"
+                >
+                  <FileText size={16} />
+                  {invoiceLoading ? "Açılıyor..." : "E-Faturayı gör"}
+                </button>
+              </>
+            ) : order.invoice_status === "pending" ? (
+              <p className="text-xs text-ink/50">
+                E-faturan TÜRMOB’da kesildikten sonra burada görünecek. Siparişi açıp “E-Faturayı gör” ile PDF’i açabilirsin.
+              </p>
+            ) : (
+              <p className="text-xs text-ink/50">Bu sipariş için henüz e-fatura yok.</p>
+            )}
+            {invoiceError && <p className="text-xs text-burgundy">{invoiceError}</p>}
+          </div>
 
           <div className="border-t border-ink/10 pt-3 flex flex-col gap-3">
             <h3 className="text-sm font-semibold text-ink">İade / iptal</h3>

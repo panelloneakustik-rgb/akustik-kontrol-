@@ -106,15 +106,18 @@ class Order(models.Model):
 
     order_code = models.CharField(
         max_length=20, unique=True, null=True, blank=True,
-        help_text="Luca açıklamasına yazılacak kod, örn. AK-1042",
+        help_text="TÜRMOB e-fatura açıklamasına yazılacak kod, örn. AK-1042",
+        verbose_name="Sipariş kodu",
     )
     invoice_pdf = models.FileField(
         storage=PrivateInvoiceStorage(),
         upload_to=invoice_upload_to,
         blank=True,
         null=True,
+        verbose_name="TÜRMOB e-fatura PDF",
+        help_text="TÜRMOB’da kestiğin e-fatura PDF’ini buraya yükle. Müşteri Siparişlerim’den görür.",
     )
-    invoice_number = models.CharField(max_length=64, blank=True)
+    invoice_number = models.CharField(max_length=64, blank=True, verbose_name="Fatura no / ETTN")
     invoice_matched_at = models.DateTimeField(null=True, blank=True)
     invoice_email_uid = models.CharField(max_length=64, blank=True)
     stock_reserved = models.BooleanField(default=False)

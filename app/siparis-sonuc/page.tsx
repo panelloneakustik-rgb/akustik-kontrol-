@@ -25,7 +25,7 @@ function ResultContent() {
 
       <p className="text-ink/60 mb-6">
         {success
-          ? `Sipariş ${orderId ? `AK-${orderId}` : ""} başarıyla ödendi. Sipariş kodunu Luca faturasının açıklamasına yazın. Faturalar hazır olunca Hesabım > Siparişlerim içinde "E-Fatura" butonu görünür.`
+          ? `Sipariş ${orderId ? `AK-${orderId}` : ""} başarıyla ödendi. E-faturan kesilince Hesabım → Siparişlerim’de siparişi açıp “E-Faturayı gör” ile açabilirsin.`
           : "Ödeme sırasında bir sorun oluştu. Kartına herhangi bir tutar çekilmediyse tekrar deneyebilirsin."}
       </p>
 

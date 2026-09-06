@@ -30,13 +30,31 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ("order_code", "email", "first_name", "last_name", "invoice_number", "tracking_number")
     readonly_fields = ("order_code", "invoice_matched_at", "invoice_email_uid", "stock_reserved")
     inlines = [OrderItemInline]
-    fields = (
-        "user", "status", "order_code",
-        "address_title", "first_name", "last_name", "email", "phone", "mobile_phone", "tc_kimlik_no",
-        "country", "city", "district", "address",
-        "invoice_type", "company_name", "tax_office", "tax_number",
-        "cargo_company", "tracking_number",
-        "invoice_pdf", "invoice_number", "invoice_matched_at", "invoice_email_uid", "stock_reserved",
+    fieldsets = (
+        (None, {"fields": ("user", "status", "order_code")}),
+        (
+            "Müşteri ve teslimat",
+            {
+                "fields": (
+                    "address_title", "first_name", "last_name", "email", "phone", "mobile_phone", "tc_kimlik_no",
+                    "country", "city", "district", "address",
+                    "invoice_type", "company_name", "tax_office", "tax_number",
+                )
+            },
+        ),
+        ("Kargo", {"fields": ("cargo_company", "tracking_number")}),
+        (
+            "TÜRMOB e-Fatura",
+            {
+                "fields": ("invoice_pdf", "invoice_number", "invoice_matched_at", "invoice_email_uid"),
+                "description": (
+                    "TÜRMOB’da e-faturayı kes. PDF’i indirip buraya yükle. "
+                    "Fatura açıklamasına bu siparişin kodunu (AK-…) yaz. "
+                    "PDF yüklendiği anda müşteri Hesabım → Siparişlerim’den siparişi açıp e-faturayı görür."
+                ),
+            },
+        ),
+        ("Sistem", {"fields": ("stock_reserved",)}),
     )
 
 
