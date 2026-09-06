@@ -51,6 +51,13 @@ SWATCHES = [
     ("K-38", "Bakır"),
     ("K-39", "Kum"),
     ("K-40", "Tarçın"),
+    ("K-41", "Canlı Kırmızı"),
+    ("K-42", "Buz Mavisi"),
+    ("K-43", "Koyu Grafit"),
+    ("K-44", "Avcı Yeşili"),
+    ("K-45", "Melanj Antrasit"),
+    ("K-46", "Koyu Toprak"),
+    ("K-47", "Gül Moru"),
 ]
 
 
