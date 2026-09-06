@@ -1,11 +1,19 @@
 from rest_framework import viewsets, filters, status
-from rest_framework.decorators import api_view, action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.decorators import api_view, action, permission_classes
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from config.session_keys import parse_session_key
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Category, Product, Favorite, HeroSlide, Story, Review  # (senin mevcut import'larına göre)
-from .serializers import CategorySerializer, ProductListSerializer, ProductDetailSerializer, HeroSlideSerializer, StorySerializer, ReviewSerializer
+from .serializers import (
+    CategorySerializer,
+    ProductListSerializer,
+    ProductDetailSerializer,
+    HeroSlideSerializer,
+    StorySerializer,
+    ReviewSerializer,
+    MyReviewSerializer,
+)
 
 
 
@@ -68,6 +76,14 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
         reviews_qs = product.reviews.filter(is_approved=True).select_related("user")
         return Response(ReviewSerializer(reviews_qs, many=True).data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def my_reviews(request):
+    """GET /api/reviews/my/ -> the logged-in user's product comments, newest first."""
+    qs = Review.objects.filter(user=request.user).select_related("product")
+    return Response(MyReviewSerializer(qs, many=True, context={"request": request}).data)
 
 
 @api_view(["GET"])

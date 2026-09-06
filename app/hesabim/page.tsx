@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { User as UserIcon, ShoppingBag, Heart, Package, MapPin, RotateCcw, LogOut, ChevronRight } from "lucide-react";
+import { User as UserIcon, ShoppingBag, Heart, Package, MapPin, MessageCircle, LogOut, ChevronRight } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { useCart } from "@/components/CartProvider";
 import { useFavorites } from "@/components/FavoritesProvider";
-import { getMyOrders, getMyReturnRequests } from "@/lib/orders";
+import { getMyOrders } from "@/lib/orders";
+import { getMyReviews } from "@/lib/reviews";
 
 export default function AccountPage() {
   const { user, loading, logout } = useAuth();
@@ -15,7 +16,7 @@ export default function AccountPage() {
   const { productIds } = useFavorites();
   const router = useRouter();
   const [orderCount, setOrderCount] = useState<number | null>(null);
-  const [returnCount, setReturnCount] = useState<number | null>(null);
+  const [reviewCount, setReviewCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.push("/giris");
@@ -24,7 +25,7 @@ export default function AccountPage() {
   useEffect(() => {
     if (!user) return;
     getMyOrders().then((o) => setOrderCount(o.length)).catch(() => setOrderCount(null));
-    getMyReturnRequests().then((r) => setReturnCount(r.length)).catch(() => setReturnCount(null));
+    getMyReviews().then((r) => setReviewCount(r.length)).catch(() => setReviewCount(null));
   }, [user]);
 
   if (loading || !user) {
@@ -43,7 +44,7 @@ export default function AccountPage() {
     { label: "Sepetim", href: "/sepet", icon: ShoppingBag, count: itemCount, highlight: true },
     { label: "Favorilerim", href: "/favoriler", icon: Heart, count: productIds.size, highlight: false },
     { label: "Siparişlerim", href: "/hesabim/siparisler", icon: Package, count: orderCount, highlight: false },
-    { label: "İade / İptal Taleplerim", href: "/hesabim/iade-iptal", icon: RotateCcw, count: returnCount, highlight: false },
+    { label: "Sorularım", href: "/hesabim/sorularim", icon: MessageCircle, count: reviewCount, highlight: false },
     { label: "Adreslerim", href: "/hesabim/adreslerim", icon: MapPin, count: null, highlight: false },
     { label: "Kullanıcı Bilgilerim", href: "/hesabim/bilgilerim", icon: UserIcon, count: null, highlight: false },
   ];

@@ -70,6 +70,23 @@ class ReviewSerializer(serializers.ModelSerializer):
         ).exists()
 
 
+class MyReviewSerializer(serializers.ModelSerializer):
+    """Logged-in user's own reviews, including the product they commented on."""
+    product_name = serializers.CharField(source="product.name", read_only=True)
+    product_slug = serializers.CharField(source="product.slug", read_only=True)
+    product_image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Review
+        fields = [
+            "id", "product_name", "product_slug", "product_image",
+            "rating", "comment", "is_approved", "created_at",
+        ]
+
+    def get_product_image(self, obj):
+        return absolute_file_url(self.context.get("request"), obj.product.image)
+
+
 class ProductImageSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
 
