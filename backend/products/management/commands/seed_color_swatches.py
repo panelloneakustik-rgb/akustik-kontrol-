@@ -1,7 +1,7 @@
-"""Load bundled fabric photos into ColorSwatch (admin → Renkler).
+"""Load Plasmen kartela swatches into ColorSwatch.
 
-Usage (VM):
-    python manage.py seed_color_swatches
+Codes and names stay as on the kartela: B-010 … B-460.
+Usage (VM): python manage.py seed_color_swatches
 """
 from pathlib import Path
 
@@ -10,65 +10,22 @@ from django.core.management.base import BaseCommand
 
 from products.models import ColorSwatch
 
-SWATCHES = [
-    ("K-01", "Bordo"),
-    ("K-02", "Antrasit"),
-    ("K-03", "Siyah"),
-    ("K-04", "Füme Mavi"),
-    ("K-05", "Kum Beji"),
-    ("K-06", "Koyu Antrasit"),
-    ("K-07", "Şarap Kırmızısı"),
-    ("K-08", "Petrol Yeşili"),
-    ("K-09", "Hardal"),
-    ("K-10", "Gül Kurusu"),
-    ("K-11", "Kiremit"),
-    ("K-12", "Gece Mavisi"),
-    ("K-13", "Lacivert-Bordo"),
-    ("K-14", "Grafit"),
-    ("K-15", "Koyu Bordo"),
-    ("K-16", "Orman Yeşili"),
-    ("K-17", "Lacivert"),
-    ("K-18", "Çelik Mavi"),
-    ("K-19", "Deniz Yeşili"),
-    ("K-20", "Mavi"),
-    ("K-21", "Jüt Beji"),
-    ("K-22", "Kurşuni Lacivert"),
-    ("K-23", "Deve Tüyü"),
-    ("K-24", "Haki"),
-    ("K-25", "Mercan"),
-    ("K-26", "Koyu Yeşil"),
-    ("K-27", "Arduvaz"),
-    ("K-28", "Kırık Beyaz"),
-    ("K-29", "Yosun Yeşili"),
-    ("K-30", "Açık Gri"),
-    ("K-31", "Toprak"),
-    ("K-32", "Lila"),
-    ("K-33", "Vişne"),
-    ("K-34", "Krem"),
-    ("K-35", "Melanj Gri"),
-    ("K-36", "Gül Kırmızısı"),
-    ("K-37", "Koyu Vişne"),
-    ("K-38", "Bakır"),
-    ("K-39", "Kum"),
-    ("K-40", "Tarçın"),
-    ("K-41", "Canlı Kırmızı"),
-    ("K-42", "Buz Mavisi"),
-    ("K-43", "Koyu Grafit"),
-    ("K-44", "Avcı Yeşili"),
-    ("K-45", "Melanj Antrasit"),
-    ("K-46", "Koyu Toprak"),
-    ("K-47", "Gül Moru"),
-]
+# Plasmen kartela codes — name is the same as the printed code.
+SWATCHES = [(f"B-{n:03d}", f"B-{n:03d}") for n in range(10, 470, 10)]
 
 
 class Command(BaseCommand):
-    help = "Gönderilen kumaş fotoğraflarını admin renklerine ekler."
+    help = "Karteladaki B-xxx kumaş renklerini admin renklerine ekler (isimler değişmez)."
 
     def handle(self, *args, **options):
         seed_dir = Path(__file__).resolve().parents[2] / "seed_data" / "swatches"
         if not seed_dir.exists():
             self.stderr.write(self.style.ERROR(f"Klasör bulunamadı: {seed_dir}"))
             return
+
+        removed, _ = ColorSwatch.objects.filter(code__startswith="K-").delete()
+        if removed:
+            self.stdout.write(f"Eski K- kodlu {removed} kayıt silindi.")
 
         created, updated = 0, 0
         for code, name in SWATCHES:
