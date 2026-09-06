@@ -98,6 +98,7 @@ export async function getProductBySlug(slug: string) {
     color: string;
     related_products: Product[];
     color_swatches: ColorSwatch[];
+    shipping_days: string;
   }>(`/products/${slug}/`);
 }
 

@@ -54,6 +54,7 @@ class ProductAdmin(admin.ModelAdmin):
         "is_new",
         "is_bestseller",
         "stock",
+        "shipping_days",
     )
     list_display_links = ("thumb", "name")
     list_filter = ("category", "is_new", "is_bestseller")
@@ -66,6 +67,13 @@ class ProductAdmin(admin.ModelAdmin):
         ("Fiyat", {"fields": ("price", "discount_percent")}),
         ("Teknik Özellikler", {"fields": ("dimensions", "material", "color")}),
         ("Durum", {"fields": ("is_new", "is_bestseller", "stock")}),
+        (
+            "Kargo",
+            {
+                "fields": ("shipping_days",),
+                "description": "Bu ürünün kargoya verilme süresi. Her ürün için ayrı seçilir.",
+            },
+        ),
         (
             "Renk Seçenekleri",
             {

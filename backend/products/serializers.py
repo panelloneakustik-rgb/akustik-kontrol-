@@ -146,7 +146,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         fields = [
             "id", "name", "slug", "category", "description", "image", "images", "gallery_images",
             "price", "discount_percent", "discounted_price",
-            "is_new", "is_bestseller", "stock",
+            "is_new", "is_bestseller", "stock", "shipping_days",
             "dimensions", "material", "color", "color_swatches",
             "average_rating", "review_count",
             "related_products",

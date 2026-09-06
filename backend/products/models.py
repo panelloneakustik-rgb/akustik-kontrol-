@@ -49,6 +49,23 @@ class Product(models.Model):
     is_bestseller = models.BooleanField(default=False, help_text="Featured in 'Cok Satanlar'")
     stock = models.PositiveIntegerField(default=0)
 
+    SHIPPING_DAY_CHOICES = [
+        ("1-2", "1-2 iş günü"),
+        ("2-3", "2-3 iş günü"),
+        ("2-4", "2-4 iş günü"),
+        ("3-5", "3-5 iş günü"),
+        ("5-7", "5-7 iş günü"),
+        ("7-10", "7-10 iş günü"),
+        ("10-15", "10-15 iş günü"),
+    ]
+    shipping_days = models.CharField(
+        max_length=10,
+        choices=SHIPPING_DAY_CHOICES,
+        default="2-4",
+        verbose_name="Kargo süresi",
+        help_text="Ürün sayfasında “X iş günü içinde kargoda” olarak görünür.",
+    )
+
     # Technical specs shown in the product-detail spec table (all optional)
     dimensions = models.CharField(max_length=100, blank=True, help_text="e.g. 60 x 30 x 4 cm")
     material = models.CharField(max_length=100, blank=True, help_text="e.g. Kumaş kaplı sünger")

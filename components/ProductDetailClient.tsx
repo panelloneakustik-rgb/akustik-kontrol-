@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Truck, RotateCcw, ShieldCheck } from "lucide-react";
+import { Truck, Lock, ShieldCheck } from "lucide-react";
 import { getProductBySlug, formatTL } from "@/lib/api";
 import ProductGallery from "@/components/ProductGallery";
 import AddToCartBox from "@/components/AddToCartBox";
@@ -116,11 +116,13 @@ export default function ProductDetailClient() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-ink/10 text-center">
             <div className="flex flex-col items-center gap-2">
               <Truck size={20} className="text-burgundy" />
-              <span className="text-xs text-ink/60">2-4 iş günü içinde kargoda</span>
+              <span className="text-xs text-ink/60">
+                {product.shipping_days || "2-4"} iş günü içinde kargoda
+              </span>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <RotateCcw size={20} className="text-burgundy" />
-              <span className="text-xs text-ink/60">14 gün içinde ücretsiz iade</span>
+              <Lock size={20} className="text-burgundy" />
+              <span className="text-xs text-ink/60">3D Secure ile güvenli ödeme</span>
             </div>
             <div className="flex flex-col items-center gap-2">
               <ShieldCheck size={20} className="text-burgundy" />
