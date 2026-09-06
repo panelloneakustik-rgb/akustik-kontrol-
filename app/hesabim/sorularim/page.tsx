@@ -105,10 +105,12 @@ export default function MyQuestionsPage() {
                   </div>
                 </Link>
                 <p className="text-sm text-ink/80 leading-relaxed whitespace-pre-wrap">{review.comment}</p>
-                {!review.is_approved && (
+                {!review.visibility || review.visibility === "admin" ? (
                   <p className="text-xs text-amber-800 bg-amber-50 px-3 py-2 rounded">
-                    Bu yorum henüz yayında değil; inceleme sonrası ürün sayfasında görünecek.
+                    Bu yorum şu an yalnızca sende görünüyor. Yönetici yayına alınca herkes görür.
                   </p>
+                ) : (
+                  <p className="text-xs text-ink/45">Herkese açık</p>
                 )}
               </article>
             );

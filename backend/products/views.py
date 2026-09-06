@@ -1,6 +1,7 @@
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import api_view, action, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from django.db.models import Q
 from config.session_keys import parse_session_key
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -67,15 +68,23 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
             review, created = Review.objects.update_or_create(
                 product=product, user=request.user,
-                defaults={"rating": rating, "comment": comment},
+                defaults={
+                    "rating": rating,
+                    "comment": comment,
+                    "visibility": Review.VISIBILITY_ADMIN,
+                },
             )
             return Response(
-                ReviewSerializer(review).data,
+                ReviewSerializer(review, context={"request": request}).data,
                 status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
             )
 
-        reviews_qs = product.reviews.filter(is_approved=True).select_related("user")
-        return Response(ReviewSerializer(reviews_qs, many=True).data)
+        qs = product.reviews.select_related("user")
+        if request.user.is_authenticated:
+            qs = qs.filter(Q(visibility=Review.VISIBILITY_EVERYONE) | Q(user=request.user))
+        else:
+            qs = qs.filter(visibility=Review.VISIBILITY_EVERYONE)
+        return Response(ReviewSerializer(qs, many=True, context={"request": request}).data)
 
 
 @api_view(["GET"])

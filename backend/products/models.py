@@ -185,16 +185,35 @@ class HeroSlide(models.Model):
 
 class Review(models.Model):
     """A logged-in customer's rating/comment on a product. One review per user per product."""
+    VISIBILITY_EVERYONE = "everyone"
+    VISIBILITY_ADMIN = "admin"
+    VISIBILITY_CHOICES = [
+        (VISIBILITY_EVERYONE, "Herkese görünsün"),
+        (VISIBILITY_ADMIN, "Sadece bana (admin) görünsün"),
+    ]
+
     product = models.ForeignKey(Product, related_name="reviews", on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="reviews", on_delete=models.CASCADE)
     rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     comment = models.TextField()
-    is_approved = models.BooleanField(default=True, help_text="Uncheck to hide this review from the site without deleting it.")
+    visibility = models.CharField(
+        max_length=20,
+        choices=VISIBILITY_CHOICES,
+        default=VISIBILITY_ADMIN,
+        verbose_name="Kimler görsün",
+        help_text="Herkese: ürün sayfasında yayınlanır. Sadece bana: yalnızca bu admin panelinde durur. Yazan müşteri kendi yorumunu her zaman görür.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ("product", "user")
         ordering = ["-created_at"]
+        verbose_name = "Yorum"
+        verbose_name_plural = "Yorumlar"
 
     def __str__(self):
-        return f"{self.user} -> {self.product.name} ({self.rating}★)"    
+        return f"{self.user} -> {self.product.name} ({self.rating}★)"
+
+    @property
+    def is_public(self):
+        return self.visibility == self.VISIBILITY_EVERYONE 

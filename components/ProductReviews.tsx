@@ -97,18 +97,21 @@ export default function ProductReviews({ slug }: { slug: string }) {
       .then(setReviews)
       .catch(() => setReviews([]))
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [slug, user]);
 
-  const avg = reviews.length ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+  const publicReviews = reviews.filter((r) => r.is_public);
+  const avg = publicReviews.length
+    ? publicReviews.reduce((sum, r) => sum + r.rating, 0) / publicReviews.length
+    : 0;
 
   return (
     <section className="mt-16 border-t border-ink/10 pt-10">
       <div className="flex items-center gap-3 mb-6">
         <h2 className="font-display text-2xl text-ink">Müşteri Yorumları</h2>
-        {reviews.length > 0 && (
+        {publicReviews.length > 0 && (
           <>
             <StarRow rating={avg} />
-            <span className="text-sm text-ink/50">{avg.toFixed(1)} / 5 ({reviews.length} yorum)</span>
+            <span className="text-sm text-ink/50">{avg.toFixed(1)} / 5 ({publicReviews.length} yorum)</span>
           </>
         )}
       </div>
@@ -135,6 +138,11 @@ export default function ProductReviews({ slug }: { slug: string }) {
             <div key={r.id} className="bg-card p-4">
               <StarRow rating={r.rating} size={14} />
               <p className="text-sm text-ink/70 my-2">{r.comment}</p>
+              {r.is_own && !r.is_public && (
+                <p className="text-xs text-amber-800 bg-amber-50 px-2 py-1 mb-2 rounded">
+                  Bu yorum şu an yalnızca sende görünüyor. Yönetici yayına alınca herkes görür.
+                </p>
+              )}
               <div className="flex items-center gap-1.5">
                 <p className="text-xs text-ink/50 font-medium">{r.user_name}</p>
                 {r.is_verified_purchase && (

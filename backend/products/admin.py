@@ -113,8 +113,19 @@ class HeroSlideAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ("product", "user", "rating", "is_approved", "created_at")
-    list_filter = ("is_approved", "rating")
-    list_editable = ("is_approved",)
+    list_display = ("product", "user", "rating", "visibility", "created_at")
+    list_filter = ("visibility", "rating")
+    list_editable = ("visibility",)
     search_fields = ("product__name", "user__email", "comment")
     readonly_fields = ("product", "user", "rating", "comment", "created_at")
+    radio_fields = {"visibility": admin.VERTICAL}
+    fieldsets = (
+        (None, {"fields": ("product", "user", "rating", "comment", "created_at")}),
+        (
+            "Yayın",
+            {
+                "fields": ("visibility",),
+                "description": "Herkese: ürün sayfasında herkes görür. Sadece bana: yalnızca bu panelde durur. Yazan müşteri kendi yorumunu Hesabım → Sorularım ve ürün sayfasında her zaman görür.",
+            },
+        ),
+    )

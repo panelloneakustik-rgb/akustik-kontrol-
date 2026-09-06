@@ -49,10 +49,15 @@ class StorySerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField()
     is_verified_purchase = serializers.SerializerMethodField()
+    is_own = serializers.SerializerMethodField()
+    is_public = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
-        fields = ["id", "user_name", "rating", "comment", "is_verified_purchase", "created_at"]
+        fields = [
+            "id", "user_name", "rating", "comment", "is_verified_purchase",
+            "visibility", "is_public", "is_own", "created_at",
+        ]
 
     def get_user_name(self, obj):
         full_name = f"{obj.user.first_name} {obj.user.last_name}".strip()
@@ -69,6 +74,13 @@ class ReviewSerializer(serializers.ModelSerializer):
             user=obj.user, items__product=obj.product, status__in=["paid", "shipped", "delivered"]
         ).exists()
 
+    def get_is_own(self, obj):
+        request = self.context.get("request")
+        return bool(request and getattr(request.user, "is_authenticated", False) and obj.user_id == request.user.id)
+
+    def get_is_public(self, obj):
+        return obj.visibility == Review.VISIBILITY_EVERYONE
+
 
 class MyReviewSerializer(serializers.ModelSerializer):
     """Logged-in user's own reviews, including the product they commented on."""
@@ -80,7 +92,7 @@ class MyReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = [
             "id", "product_name", "product_slug", "product_image",
-            "rating", "comment", "is_approved", "created_at",
+            "rating", "comment", "visibility", "created_at",
         ]
 
     def get_product_image(self, obj):
@@ -173,10 +185,10 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         return ProductListSerializer(qs, many=True, context=self.context).data
 
     def get_average_rating(self, obj):
-        approved = obj.reviews.filter(is_approved=True)
+        approved = obj.reviews.filter(visibility="everyone")
         if not approved.exists():
             return None
         return round(sum(r.rating for r in approved) / approved.count(), 1)
 
     def get_review_count(self, obj):
-        return obj.reviews.filter(is_approved=True).count()
+        return obj.reviews.filter(visibility="everyone").count()

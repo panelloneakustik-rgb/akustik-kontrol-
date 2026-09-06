@@ -8,11 +8,17 @@ export type Review = {
   rating: number;
   comment: string;
   is_verified_purchase: boolean;
+  visibility: "everyone" | "admin";
+  is_public: boolean;
+  is_own: boolean;
   created_at: string;
 };
 
 export async function getProductReviews(slug: string): Promise<Review[]> {
-  const res = await fetch(`${API_BASE}/products/${slug}/reviews/`, { cache: "no-store" });
+  const token = getAccessToken();
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}/products/${slug}/reviews/`, { cache: "no-store", headers });
   if (!res.ok) throw new Error(`Reviews API failed: ${res.status}`);
   return res.json();
 }
@@ -24,7 +30,7 @@ export type MyReview = {
   product_image: string | null;
   rating: number;
   comment: string;
-  is_approved: boolean;
+  visibility: "everyone" | "admin";
   created_at: string;
 };
 
