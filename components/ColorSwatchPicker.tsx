@@ -15,11 +15,11 @@ export default function ColorSwatchPicker({
   if (swatches.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       <span className="text-sm font-medium text-ink">
         Renk{selected ? `: ${selected.name || selected.code}` : " seçin"}
       </span>
-      <div className="flex flex-wrap gap-x-2 gap-y-3 items-center overflow-visible py-2">
+      <div className="flex flex-wrap gap-3 items-center overflow-visible py-5">
         {swatches.map((s) => {
           const isSelected = selected?.id === s.id;
           return (
@@ -29,13 +29,17 @@ export default function ColorSwatchPicker({
               onClick={() => onSelect(s)}
               title={s.name || s.code}
               aria-pressed={isSelected}
-              className={`relative shrink-0 w-10 h-10 rounded-full overflow-hidden border-2 origin-center transition-transform duration-200 ease-out ${
+              className={`relative shrink-0 w-12 h-12 rounded-full overflow-hidden origin-center ${
                 isSelected
-                  ? "z-10 scale-[1.55] border-burgundy shadow-md"
-                  : "z-0 scale-100 border-transparent hover:scale-110 hover:border-ink/20 active:scale-125"
+                  ? "z-20 scale-[1.85] border-[3px] border-burgundy shadow-[0_8px_22px_rgba(122,30,40,0.28)]"
+                  : "z-0 scale-100 border-2 border-white/80 shadow-sm hover:scale-125 hover:shadow-md active:scale-[1.4]"
               }`}
+              style={{
+                transition:
+                  "transform 280ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 280ms ease, border-color 200ms ease",
+              }}
             >
-              <Image src={s.image} alt={s.name || s.code} fill className="object-cover" sizes="64px" />
+              <Image src={s.image} alt={s.name || s.code} fill className="object-cover" sizes="96px" />
             </button>
           );
         })}
