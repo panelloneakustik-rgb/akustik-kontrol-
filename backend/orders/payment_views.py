@@ -38,10 +38,8 @@ def initialize_payment(request, order_id):
     if not settings.IYZICO_API_KEY:
         return Response(
             {
-                "detail": (
-                    "Kartlı ödeme şu an kapalı. "
-                    "E-fatura denemesi için adminde siparişi Ödendi yapman yeterli."
-                )
+                "detail": "Kart ödemesi şu an kullanılamıyor.",
+                "code": "payment_unavailable",
             },
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )

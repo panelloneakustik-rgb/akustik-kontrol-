@@ -73,8 +73,18 @@ export async function getMyOrders(): Promise<Order[]> {
   return res.json();
 }
 
+export class PaymentUnavailableError extends Error {
+  constructor() {
+    super("payment_unavailable");
+    this.name = "PaymentUnavailableError";
+  }
+}
+
 export async function initializePayment(orderId: number): Promise<{ checkout_form_content: string }> {
   const res = await fetch(`${API_BASE}/orders/${orderId}/pay/`, { method: "POST" });
+  if (res.status === 503) {
+    throw new PaymentUnavailableError();
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.detail || "Ödeme başlatılamadı.");

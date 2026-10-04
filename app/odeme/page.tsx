@@ -1,14 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { initializePayment } from "@/lib/orders";
+import { initializePayment, PaymentUnavailableError } from "@/lib/orders";
 
 function PaymentForm() {
   const params = useSearchParams();
   const orderId = Number(params.get("id"));
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [recorded, setRecorded] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,13 +34,21 @@ function PaymentForm() {
           oldScript.parentNode?.replaceChild(newScript, oldScript);
         });
       })
-      .catch((err) => setError(err instanceof Error ? err.message : "Ödeme başlatılamadı."))
+      .catch((err) => {
+        if (err instanceof PaymentUnavailableError) {
+          setRecorded(true);
+          return;
+        }
+        setError(err instanceof Error ? err.message : "Ödeme başlatılamadı.");
+      })
       .finally(() => setLoading(false));
   }, [orderId]);
 
   return (
     <main className="px-4 sm:px-6 lg:px-8 py-16 max-w-lg mx-auto">
-      <h1 className="font-display text-3xl text-ink mb-2 text-center">Ödeme</h1>
+      <h1 className="font-display text-3xl text-ink mb-2 text-center">
+        {recorded ? "Siparişiniz alındı" : "Ödeme"}
+      </h1>
       {orderId ? (
         <p className="text-center text-ink/50 text-sm mb-8">Sipariş kodu: AK-{orderId}</p>
       ) : (
@@ -46,20 +56,20 @@ function PaymentForm() {
       )}
 
       {loading && <p className="text-center text-ink/50 text-sm">Ödeme formu hazırlanıyor...</p>}
-      {error && (
-        <div className="text-center flex flex-col items-center gap-3">
-          <p className="text-burgundy text-sm">{error}</p>
-          <p className="text-ink/60 text-sm">
-            Kart ödemesi şu an açılamazsa sipariş numaranla bize yaz; siparişin kayıtlı kalır.
+      {recorded && (
+        <div className="text-center flex flex-col items-center gap-4">
+          <p className="text-ink/70 text-sm leading-relaxed">
+            Siparişiniz kaydedildi. Ödeme ve teslimat için sizinle iletişime geçeceğiz.
           </p>
-          <a
-            href="tel:+902166302141"
+          <Link
+            href={orderId ? "/hesabim/siparisler" : "/"}
             className="inline-block bg-burgundy text-white text-sm font-medium py-3 px-6 hover:bg-burgundy-dark"
           >
-            0 216 630 21 41
-          </a>
+            Siparişlerim
+          </Link>
         </div>
       )}
+      {error && <p className="text-center text-burgundy text-sm">{error}</p>}
 
       <div ref={containerRef} id="iyzipay-checkout-form" className="responsive" />
     </main>
