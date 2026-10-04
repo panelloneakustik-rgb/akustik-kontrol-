@@ -18,6 +18,20 @@ function apiImagePattern() {
 const nextConfig = {
   allowedDevOrigins: ["127.0.0.1", "localhost", "null", "*.cursor.sh", "*.cursor.com"],
   skipTrailingSlashRedirect: true,
+  async redirects() {
+    return [
+      {
+        source: "/admin",
+        destination: "https://api.akustikkontrol.com.tr/admin/",
+        permanent: false,
+      },
+      {
+        source: "/admin/:path*",
+        destination: "https://api.akustikkontrol.com.tr/admin/:path*",
+        permanent: false,
+      },
+    ];
+  },
   images: {
     unoptimized: true,
     remotePatterns: [
