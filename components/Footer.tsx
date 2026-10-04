@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Facebook, Instagram, Twitter, Phone, MapPin } from "lucide-react";
-import { STORE_PHONE_DISPLAY, whatsappHref } from "@/lib/config";
+import { STORE_PHONE_DISPLAY } from "@/lib/config";
 
 const SOCIAL_LINKS = [
   { label: "Pinterest", href: "https://tr.pinterest.com/akustikkontrol/", icon: "pinterest" as const },
@@ -68,14 +68,6 @@ export default function Footer() {
           <a href="tel:+902166302141" className="flex items-center gap-2 text-burgundy font-semibold">
             <Phone size={16} />
             {STORE_PHONE_DISPLAY}
-          </a>
-          <a
-            href={whatsappHref("Merhaba, akustikkontrol.com.tr üzerinden yazıyorum.")}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-[#128C7E] font-medium hover:underline"
-          >
-            WhatsApp ile yazın
           </a>
           <span className="inline-flex items-start gap-2 text-left">
             <MapPin size={16} className="mt-0.5 shrink-0" />

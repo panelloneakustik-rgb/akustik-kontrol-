@@ -4,7 +4,6 @@ import Header from "@/components/Header";
 import CategoryBar from "@/components/CategoryBar";
 import Footer from "@/components/Footer";
 import CookieBanner from "@/components/CookieBanner";
-import WhatsAppFloat from "@/components/WhatsAppFloat";
 import GsiPreload from "@/components/GsiPreload";
 import { CartProvider } from "@/components/CartProvider";
 import { AuthProvider } from "@/components/AuthProvider";
@@ -50,7 +49,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <main>{children}</main>
               <Footer />
               <CookieBanner />
-              <WhatsAppFloat />
             </FavoritesProvider>
           </CartProvider>
         </AuthProvider>

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
-import { whatsappHref } from "@/lib/config";
 
 function ResultContent() {
   const params = useSearchParams();
@@ -39,16 +38,10 @@ function ResultContent() {
         </Link>
         {!success && (
           <a
-            href={whatsappHref(
-              orderId
-                ? `Merhaba, AK-${orderId} siparişimin ödemesi tamamlanamadı.`
-                : "Merhaba, ödeme sayfasında sorun yaşadım."
-            )}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block border border-[#25D366] text-[#128C7E] text-sm font-medium py-3 px-6 hover:bg-[#25D366]/10"
+            href="tel:+902166302141"
+            className="inline-block border border-burgundy text-burgundy text-sm font-medium py-3 px-6 hover:bg-burgundy/5"
           >
-            WhatsApp ile yazın
+            0 216 630 21 41
           </a>
         )}
       </div>

@@ -50,7 +50,8 @@ function SearchResults() {
             <Link href="/urunler" className="text-burgundy font-medium hover:underline">
               Tüm ürünlere bak
             </Link>
-            {" "}veya sağ alttan WhatsApp ile sorun.
+            .
+
           </p>
         </div>
       ) : (
