@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { initializePayment } from "@/lib/orders";
+import { whatsappHref } from "@/lib/config";
 
 function PaymentForm() {
   const params = useSearchParams();
@@ -46,7 +47,24 @@ function PaymentForm() {
       )}
 
       {loading && <p className="text-center text-ink/50 text-sm">Ödeme formu hazırlanıyor...</p>}
-      {error && <p className="text-center text-burgundy text-sm">{error}</p>}
+      {error && (
+        <div className="text-center flex flex-col items-center gap-3">
+          <p className="text-burgundy text-sm">{error}</p>
+          <p className="text-ink/60 text-sm">
+            Kart ödemesi şu an açılamazsa sipariş numaranla bize yaz; siparişin kayıtlı kalır.
+          </p>
+          {orderId ? (
+            <a
+              href={whatsappHref(`Merhaba, AK-${orderId} siparişim için yazıyorum.`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-[#25D366] text-white text-sm font-medium py-3 px-6 hover:opacity-90"
+            >
+              WhatsApp ile yazın
+            </a>
+          ) : null}
+        </div>
+      )}
 
       <div ref={containerRef} id="iyzipay-checkout-form" className="responsive" />
     </main>

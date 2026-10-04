@@ -1,6 +1,6 @@
 from config.media import absolute_file_url
 from rest_framework import serializers
-from .models import Category, Product, ProductImage, HeroSlide, ColorSwatch, Review, Story
+from .models import Category, Product, ProductImage, HeroSlide, ColorSwatch, Review, Story, ProductVariant
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -37,13 +37,17 @@ class HeroSlideSerializer(serializers.ModelSerializer):
 
 class StorySerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
+    video = serializers.SerializerMethodField()
 
     class Meta:
         model = Story
-        fields = ["id", "title", "image", "link_url", "order"]
+        fields = ["id", "title", "image", "video", "link_url", "order"]
 
     def get_image(self, obj):
-        return absolute_file_url(self.context.get("request"), obj.image) 
+        return absolute_file_url(self.context.get("request"), obj.image)
+
+    def get_video(self, obj):
+        return absolute_file_url(self.context.get("request"), obj.video) 
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -110,6 +114,18 @@ class ProductImageSerializer(serializers.ModelSerializer):
         return absolute_file_url(self.context.get("request"), obj.image)
 
 
+class ProductVariantSerializer(serializers.ModelSerializer):
+    discounted_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    label = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = ProductVariant
+        fields = [
+            "id", "label", "thickness", "dimensions", "density", "color",
+            "price", "discount_percent", "discounted_price", "stock", "order",
+        ]
+
+
 class ProductListSerializer(serializers.ModelSerializer):
     """Compact shape used on the product-grid / bestsellers cards."""
     category = serializers.SlugRelatedField(slug_field="slug", read_only=True)
@@ -117,13 +133,14 @@ class ProductListSerializer(serializers.ModelSerializer):
     gallery_images = ProductImageSerializer(many=True, read_only=True)
     images = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
+    option_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = [
             "id", "name", "slug", "category", "image", "images", "gallery_images",
             "price", "discount_percent", "discounted_price",
-            "is_new", "is_bestseller", "stock",
+            "is_new", "is_bestseller", "stock", "option_count",
         ]
 
     def get_image(self, obj):
@@ -141,6 +158,12 @@ class ProductListSerializer(serializers.ModelSerializer):
                 urls.append(extra)
         return urls
 
+    def get_option_count(self, obj):
+        variants = getattr(obj, "_prefetched_objects_cache", {}).get("variants")
+        if variants is not None:
+            return len(variants)
+        return obj.variants.count()
+
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
@@ -150,6 +173,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     related_products = serializers.SerializerMethodField()
     color_swatches = ColorSwatchSerializer(many=True, read_only=True)
+    variants = ProductVariantSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
 
@@ -160,7 +184,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             "price", "discount_percent", "discounted_price",
             "is_new", "is_bestseller", "stock", "shipping_days",
             "density", "dimensions", "thickness", "product_model", "production",
-            "material", "color", "color_swatches",
+            "material", "color", "color_swatches", "variants",
             "average_rating", "review_count",
             "related_products",
         ]
@@ -181,7 +205,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         return urls
 
     def get_related_products(self, obj):
-        qs = Product.objects.filter(category=obj.category).exclude(pk=obj.pk).select_related("category")[:4]
+        qs = Product.objects.filter(category=obj.category).exclude(pk=obj.pk).select_related("category").prefetch_related("gallery_images", "variants")[:4]
         return ProductListSerializer(qs, many=True, context=self.context).data
 
     def get_average_rating(self, obj):

@@ -1,0 +1,67 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main" style="max-width:44rem">
+  <p style="line-height:1.55">
+    TÜRMOB PDF’sini şuraya at:
+    <strong><a href="mailto:panellone.akustik@gmail.com">panellone.akustik@gmail.com</a></strong>.
+    Konuya veya dosya adına sipariş kodunu yaz (<code>AK-12</code>).
+    Sistem 5 dakikada bir okur, siparişi kendi bulur, müşteri
+    <strong>Hesabım → Siparişlerim</strong> içinden görür.
+  </p>
+
+  <fieldset class="module aligned">
+    <h2>Kutu durumu</h2>
+    {% if imap.configured %}
+    <p>
+      <strong style="color:#157347">Ayarlı</strong> —
+      {{ imap.user }} @ {{ imap.host }}:{{ imap.port }} /
+      klasör {{ imap.folder }}
+    </p>
+    <p class="help">
+      İşlenen mailler <code>{{ imap.processed }}</code>,
+      eşleşmeyenler <code>{{ imap.unmatched }}</code> klasörüne taşınır.
+    </p>
+    {% else %}
+    <p style="color:#b32d2e">
+      <strong>Henüz bağlı değil.</strong>
+      VM’de <code>backend/.env</code> içine <code>IMAP_USER</code> ve
+      <code>IMAP_PASSWORD</code> yazıp <code>sudo systemctl restart akustik</code> yap.
+    </p>
+    {% endif %}
+  </fieldset>
+
+  {% if imap.configured %}
+  <form method="post" style="margin:1rem 0">
+    {% csrf_token %}
+    <div class="submit-row">
+      <button type="submit" name="action" value="test">Bağlantıyı dene</button>
+      <button type="submit" name="action" value="read" class="default">Kutuyu şimdi oku</button>
+      <a href="{% url 'admin:orders_order_changelist' %}" class="closelink" style="margin-left:1rem">Sipariş listesi</a>
+    </div>
+  </form>
+  {% endif %}
+
+  {% if log_text %}
+  <pre style="background:#111;color:#eee;padding:1rem;overflow:auto;max-height:16rem">{{ log_text }}</pre>
+  {% endif %}
+
+  <fieldset class="module">
+    <h2>Gmail uygulama şifresi (bir kez)</h2>
+    <ol>
+      <li>Google hesap <code>panellone.akustik@gmail.com</code> → Güvenlik → 2 adımlı doğrulama açık olsun.</li>
+      <li>Uygulama şifreleri → Mail uygulaması → 16 haneli şifreyi kopyala.</li>
+      <li>VM <code>backend/.env</code>:
+        <pre style="margin:0.5rem 0">IMAP_HOST=imap.gmail.com
+IMAP_PORT=993
+IMAP_USER=panellone.akustik@gmail.com
+IMAP_PASSWORD=xxxx xxxx xxxx xxxx
+IMAP_FOLDER=INBOX</pre>
+      </li>
+      <li><code>sudo systemctl restart akustik</code></li>
+      <li>Bu sayfada <strong>Bağlantıyı dene</strong>, sonra TÜRMOB PDF’sini o adrese gönder, <strong>Kutuyu şimdi oku</strong>.</li>
+    </ol>
+  </fieldset>
+</div>
+{% endblock %}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { whatsappHref } from "@/lib/config";
 
 export default function AboutPage() {
   return (
@@ -27,6 +28,22 @@ export default function AboutPage() {
         <p>
           İstanbul merkezli mağazamızdan ve online platformumuzdan Türkiye&apos;nin dört bir
           yanına gönderim yapıyoruz.
+        </p>
+        <p>
+          Ürün seçimi, stok veya sipariş için{" "}
+          <a
+            href={whatsappHref("Merhaba, akustikkontrol.com.tr üzerinden yazıyorum.")}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#128C7E] font-medium hover:underline"
+          >
+            WhatsApp
+          </a>{" "}
+          veya{" "}
+          <Link href="/magazalarimiz" className="text-burgundy font-medium hover:underline">
+            mağazamız
+          </Link>{" "}
+          üzerinden ulaşabilirsiniz.
         </p>
       </div>
     </main>

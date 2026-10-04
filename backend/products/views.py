@@ -33,7 +33,7 @@ class StoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = StorySerializer
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Product.objects.select_related("category").prefetch_related("gallery_images").all()
+    queryset = Product.objects.select_related("category").prefetch_related("gallery_images", "variants").all()
     lookup_field = "slug"
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ["category__slug", "is_new", "is_bestseller"]

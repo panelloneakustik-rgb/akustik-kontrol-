@@ -66,7 +66,7 @@ export default function ProductCard({ product }: { product: Product }) {
       onMouseEnter={startCycle}
       onMouseLeave={stopCycle}
     >
-      <Link href={`/urun?slug=${encodeURIComponent(product.slug)}`} className="block">
+      <Link href={`/urun/${product.slug}`} className="block">
         <div className="relative aspect-square bg-white">
           <div className="absolute top-3 left-3 z-10 flex flex-col gap-2 items-start">
             {hasDiscount && (
@@ -132,6 +132,14 @@ export default function ProductCard({ product }: { product: Product }) {
       </Link>
 
       <div className="p-4 pt-2">
+        {(product.option_count ?? 0) > 1 ? (
+          <Link
+            href={`/urun/${product.slug}`}
+            className="w-full flex items-center justify-center bg-burgundy hover:bg-burgundy-dark text-white text-xs sm:text-sm font-medium py-3 min-h-11 transition-colors"
+          >
+            Seçenekleri gör
+          </Link>
+        ) : (
         <button
           onClick={handleAddToCart}
           disabled={adding || product.stock <= 0}
@@ -140,6 +148,7 @@ export default function ProductCard({ product }: { product: Product }) {
           {added ? <Check size={16} /> : <ShoppingCart size={16} />}
           {product.stock <= 0 ? "Stokta yok" : added ? "Eklendi" : "Sepete Ekle"}
         </button>
+        )}
       </div>
     </div>
   );

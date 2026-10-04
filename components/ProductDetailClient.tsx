@@ -2,28 +2,38 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { Truck, Lock, ShieldCheck } from "lucide-react";
-import { getProductBySlug, formatTL } from "@/lib/api";
+import { Truck, RotateCcw, ShieldCheck } from "lucide-react";
+import { getProductBySlug, formatTL, type ProductVariant } from "@/lib/api";
 import ProductGallery from "@/components/ProductGallery";
 import AddToCartBox from "@/components/AddToCartBox";
+import FreeShippingBanner from "@/components/FreeShippingBanner";
 import RelatedProducts from "@/components/RelatedProducts";
 import ProductReviews from "@/components/ProductReviews";
 
 type Detail = Awaited<ReturnType<typeof getProductBySlug>>;
 
-export default function ProductDetailClient() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const fromQuery = searchParams.get("slug")?.trim() || "";
-  const fromPath = pathname.replace(/^\/urun\/?/, "").replace(/\/$/, "");
-  const slug = fromQuery || (fromPath && fromPath !== "placeholder" ? fromPath : "");
-  const [product, setProduct] = useState<Detail | null>(null);
-  const [status, setStatus] = useState<"loading" | "ok" | "missing">("loading");
+export default function ProductDetailClient({
+  slug,
+  initial = null,
+}: {
+  slug: string;
+  initial?: Detail | null;
+}) {
+  const invalid = !slug || slug === "placeholder" || slug === "_none";
+  const [product, setProduct] = useState<Detail | null>(initial);
+  const [status, setStatus] = useState<"loading" | "ok" | "missing">(
+    initial ? "ok" : invalid ? "missing" : "loading"
+  );
+  const [variantId, setVariantId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!slug || slug === "placeholder") {
+    if (invalid) {
       setStatus("missing");
+      return;
+    }
+    if (initial && initial.slug === slug) {
+      setProduct(initial);
+      setStatus("ok");
       return;
     }
     setStatus("loading");
@@ -33,7 +43,19 @@ export default function ProductDetailClient() {
         setStatus("ok");
       })
       .catch(() => setStatus("missing"));
-  }, [slug]);
+  }, [slug, initial, invalid]);
+
+  useEffect(() => {
+    const list = product?.variants ?? [];
+    if (!list.length) {
+      setVariantId(null);
+      return;
+    }
+    setVariantId((current) => {
+      if (current && list.some((v) => v.id === current)) return current;
+      return (list.find((v) => v.stock > 0) ?? list[0]).id;
+    });
+  }, [product]);
 
   if (status === "loading") {
     return (
@@ -53,13 +75,29 @@ export default function ProductDetailClient() {
     );
   }
 
-  const images = product.images && product.images.length > 0 ? product.images : product.image ? [product.image] : [];
-  const hasDiscount = product.discount_percent > 0;
+  const variants: ProductVariant[] = product.variants ?? [];
+  const selected = variants.find((v) => v.id === variantId) ?? variants[0] ?? null;
+
+  const categorySlug =
+    typeof product.category === "string" ? product.category : product.category?.slug;
+  const categoryName =
+    typeof product.category === "string" ? product.category : product.category?.name;
+  const images =
+    product.images && product.images.length > 0
+      ? product.images
+      : product.image
+        ? [product.image]
+        : [];
+  const hasDiscount = (selected?.discount_percent ?? product.discount_percent) > 0;
+  const displayPrice = selected?.price ?? product.price;
+  const displayDiscounted = selected?.discounted_price ?? product.discounted_price;
+  const displayDiscount = selected?.discount_percent ?? product.discount_percent;
+  const displayStock = selected?.stock ?? product.stock;
   const specs = [
     { label: "Model", value: product.product_model },
-    { label: "Kalınlık", value: product.thickness },
-    { label: "Ebat", value: product.dimensions },
-    { label: "Yoğunluk", value: product.density },
+    { label: "Kalınlık", value: selected?.thickness || product.thickness },
+    { label: "Ebat", value: selected?.dimensions || product.dimensions },
+    { label: "Yoğunluk", value: selected?.density || product.density },
     { label: "Yapı", value: product.material },
     { label: "Üretim", value: product.production },
   ].filter((s) => s.value);
@@ -68,6 +106,16 @@ export default function ProductDetailClient() {
     <main className="px-4 sm:px-6 lg:px-8 py-10 max-w-6xl mx-auto">
       <nav className="text-xs text-ink/50 mb-6 break-words">
         <Link href="/" className="hover:text-burgundy">Ana Sayfa</Link>
+        <span className="mx-2">/</span>
+        <Link href="/urunler" className="hover:text-burgundy">Ürünler</Link>
+        {categorySlug && (
+          <>
+            <span className="mx-2">/</span>
+            <Link href={`/kategori/${categorySlug}`} className="hover:text-burgundy">
+              {categoryName}
+            </Link>
+          </>
+        )}
         <span className="mx-2">/</span>
         <span className="text-ink">{product.name}</span>
       </nav>
@@ -83,12 +131,12 @@ export default function ProductDetailClient() {
 
           <div className="flex items-baseline gap-3 flex-wrap">
             {hasDiscount && (
-              <span className="text-base text-ink/40 line-through">{formatTL(product.price)}</span>
+              <span className="text-base text-ink/40 line-through">{formatTL(displayPrice)}</span>
             )}
-            <span className="text-2xl font-bold text-ink">{formatTL(product.discounted_price)}</span>
+            <span className="text-2xl font-bold text-ink">{formatTL(displayDiscounted)}</span>
             {hasDiscount && (
               <span className="bg-burgundy text-white text-xs font-semibold px-2 py-1">
-                % {product.discount_percent} İndirim
+                % {displayDiscount} İndirim
               </span>
             )}
           </div>
@@ -111,12 +159,21 @@ export default function ProductDetailClient() {
           )}
 
           <p className="text-xs text-ink/50">
-            {product.stock > 0 ? `Stokta ${product.stock} adet` : "Stokta yok"}
+            {displayStock > 0 ? `Stokta ${displayStock} adet` : "Stokta yok"}
           </p>
 
-          <AddToCartBox productId={product.id} maxQty={product.stock || 0} colorSwatches={product.color_swatches} />
+          <AddToCartBox
+            productId={product.id}
+            maxQty={displayStock || 0}
+            colorSwatches={product.color_swatches}
+            variants={variants}
+            selectedVariantId={variantId}
+            onVariantChange={setVariantId}
+          />
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-ink/10 text-center">
+          <FreeShippingBanner />
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2 pt-6 border-t border-ink/10 text-center">
             <div className="flex flex-col items-center gap-2">
               <Truck size={20} className="text-burgundy" />
               <span className="text-xs text-ink/60">
@@ -124,8 +181,8 @@ export default function ProductDetailClient() {
               </span>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <Lock size={20} className="text-burgundy" />
-              <span className="text-xs text-ink/60">3D Secure ile güvenli ödeme</span>
+              <RotateCcw size={20} className="text-burgundy" />
+              <span className="text-xs text-ink/60">14 gün içinde ücretsiz iade</span>
             </div>
             <div className="flex flex-col items-center gap-2">
               <ShieldCheck size={20} className="text-burgundy" />

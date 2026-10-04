@@ -37,8 +37,13 @@ def initialize_payment(request, order_id):
     """POST /api/orders/<order_id>/pay/ -> {checkout_form_content: "<script>...</script>"}"""
     if not settings.IYZICO_API_KEY:
         return Response(
-            {"detail": "Ödeme sistemi henüz yapılandırılmadı (IYZICO_API_KEY eksik)."},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            {
+                "detail": (
+                    "Kartlı ödeme şu an kapalı. "
+                    "E-fatura denemesi için adminde siparişi Ödendi yapman yeterli."
+                )
+            },
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
 
     try:

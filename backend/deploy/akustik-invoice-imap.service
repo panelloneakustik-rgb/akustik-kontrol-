@@ -1,0 +1,11 @@
+[Unit]
+Description=Akustik Kontrol TÜRMOB fatura kutusunu oku
+After=network-online.target akustik.service
+
+[Service]
+Type=oneshot
+User=panellone_akustik
+WorkingDirectory=/home/panellone_akustik/akustik-kontrol/backend
+Environment=DJANGO_DEBUG=false
+EnvironmentFile=-/home/panellone_akustik/akustik-kontrol/backend/.env
+ExecStart=/home/panellone_akustik/akustik-kontrol/backend/venv/bin/python manage.py check_invoice_emails

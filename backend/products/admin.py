@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Category, Product, ProductImage, Story, HeroSlide, ColorSwatch, Review
+from .models import Category, Product, ProductImage, Story, HeroSlide, ColorSwatch, Review, ProductVariant
 
 
 @admin.register(Category)
@@ -43,6 +43,12 @@ class ProductImageInline(admin.TabularInline):
     preview.short_description = "Önizleme"
 
 
+class ProductVariantInline(admin.TabularInline):
+    model = ProductVariant
+    extra = 2
+    fields = ("order", "thickness", "dimensions", "density", "color", "price", "discount_percent", "stock")
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
@@ -55,24 +61,24 @@ class ProductAdmin(admin.ModelAdmin):
         "is_bestseller",
         "stock",
         "shipping_days",
+        "variant_count",
     )
     list_display_links = ("thumb", "name")
     list_filter = ("category", "is_new", "is_bestseller")
     search_fields = ("name", "description")
     prepopulated_fields = {"slug": ("name",)}
     filter_horizontal = ("color_swatches",)
-    inlines = [ProductImageInline]
+    inlines = [ProductVariantInline, ProductImageInline]
     fieldsets = (
         (None, {"fields": ("category", "name", "slug", "description", "image")}),
-        ("Fiyat", {"fields": ("price", "discount_percent")}),
         (
-            "Ürün özellikleri",
+            "Ortak özellikler",
             {
-                "fields": ("product_model", "thickness", "dimensions", "density", "material", "production", "color"),
-                "description": "Sitede şu sırayla görünür: Model, Kalınlık, Ebat, Yoğunluk, Yapı, Üretim. Boş satırlar gizlenir.",
+                "fields": ("product_model", "material", "production"),
+                "description": "Model, yapı ve üretim tüm varyantlarda aynıdır. Kalınlık, ebat, yoğunluk, renk, fiyat ve stok aşağıda her satır için ayrı girilir.",
             },
         ),
-        ("Durum", {"fields": ("is_new", "is_bestseller", "stock")}),
+        ("Durum", {"fields": ("is_new", "is_bestseller")}),
         (
             "Kargo",
             {
@@ -81,10 +87,10 @@ class ProductAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "Renk Seçenekleri",
+            "Kumaş / renk örnekleri",
             {
                 "fields": ("color_swatches",),
-                "description": "Kumaş/renk seçenekleri. JPEG, PNG veya WebP, mümkünse 5 MB altı.",
+                "description": "Müşteri kumaş kodu seçecekse buraya ekle. Kalınlık ve ebat için üstteki varyant satırlarını kullan.",
             },
         ),
     )
@@ -99,10 +105,51 @@ class ProductAdmin(admin.ModelAdmin):
 
     thumb.short_description = "Görsel"
 
+    def variant_count(self, obj):
+        return obj.variants.count()
+
+    variant_count.short_description = "Varyant"
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        obj = form.instance
+        if not obj.variants.exists():
+            ProductVariant.objects.create(
+                product=obj,
+                price=obj.price,
+                discount_percent=obj.discount_percent,
+                stock=obj.stock,
+                thickness=obj.thickness,
+                dimensions=obj.dimensions,
+                density=obj.density,
+                color=obj.color,
+            )
+
 
 @admin.register(Story)
 class StoryAdmin(admin.ModelAdmin):
-    list_display = ("title", "link_url", "order")
+    list_display = ("thumb", "title", "has_video", "link_url", "order")
+    list_editable = ("order",)
+    list_display_links = ("thumb", "title")
+    fields = ("title", "image", "video", "link_url", "order")
+
+    def thumb(self, obj):
+        if obj.image:
+            return format_html(
+                '<img src="{}" style="width:48px;height:48px;object-fit:cover;border-radius:999px;" />',
+                obj.image.url,
+            )
+        if obj.video:
+            return "Video"
+        return "-"
+
+    thumb.short_description = "Kapak"
+
+    def has_video(self, obj):
+        return bool(obj.video)
+
+    has_video.boolean = True
+    has_video.short_description = "Video"
 
 
 @admin.register(HeroSlide)

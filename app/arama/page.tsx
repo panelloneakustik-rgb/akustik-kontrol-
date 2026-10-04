@@ -44,7 +44,15 @@ function SearchResults() {
       ) : loading ? (
         <p className="text-ink/50 text-sm">Aranıyor...</p>
       ) : products.length === 0 ? (
-        <p className="text-ink/50 text-sm">Aramanızla eşleşen ürün bulunamadı.</p>
+        <div className="text-sm text-ink/60 space-y-3">
+          <p>Aramanızla eşleşen ürün bulunamadı.</p>
+          <p>
+            <Link href="/urunler" className="text-burgundy font-medium hover:underline">
+              Tüm ürünlere bak
+            </Link>
+            {" "}veya sağ alttan WhatsApp ile sorun.
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8">
           {products.map((p) => (

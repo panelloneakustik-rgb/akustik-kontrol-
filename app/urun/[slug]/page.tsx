@@ -1,6 +1,7 @@
-import { Suspense } from "react";
 import ProductDetailClient from "@/components/ProductDetailClient";
-import { getProducts } from "@/lib/api";
+import { getProductBySlug, getProducts } from "@/lib/api";
+
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const products = await getProducts().catch(() => []);
@@ -8,10 +9,8 @@ export async function generateStaticParams() {
   return slugs.length > 0 ? slugs : [{ slug: "_none" }];
 }
 
-export default function ProductDetailPage() {
-  return (
-    <Suspense fallback={<main className="px-4 sm:px-6 lg:px-8 py-16 text-center text-ink/50">Yükleniyor...</main>}>
-      <ProductDetailClient />
-    </Suspense>
-  );
+export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const product = slug && slug !== "_none" ? await getProductBySlug(slug).catch(() => null) : null;
+  return <ProductDetailClient slug={slug} initial={product} />;
 }

@@ -3,6 +3,9 @@ import "./globals.css";
 import Header from "@/components/Header";
 import CategoryBar from "@/components/CategoryBar";
 import Footer from "@/components/Footer";
+import CookieBanner from "@/components/CookieBanner";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
+import GsiPreload from "@/components/GsiPreload";
 import { CartProvider } from "@/components/CartProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 import { FavoritesProvider } from "@/components/FavoritesProvider";
@@ -39,12 +42,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="tr">
       <body className="font-sans">
         <AuthProvider>
+          <GsiPreload />
           <CartProvider>
             <FavoritesProvider>
               <Header />
               <CategoryBar stories={stories} />
               <main>{children}</main>
               <Footer />
+              <CookieBanner />
+              <WhatsAppFloat />
             </FavoritesProvider>
           </CartProvider>
         </AuthProvider>

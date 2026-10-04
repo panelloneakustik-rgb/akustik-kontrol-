@@ -117,8 +117,11 @@ export default function Header() {
             )}
           </Link>
 
-          <Link href={mounted && user ? "/hesabim" : "/giris"} aria-label="Hesabım" className={iconBtn}>
+          <Link href={mounted && user ? "/hesabim" : "/giris"} aria-label={mounted && user ? "Hesabım" : "Giriş yap"} className={iconBtn}>
             <User size={20} />
+            {mounted && user ? (
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-gold" aria-hidden />
+            ) : null}
           </Link>
 
           <Link href="/sepet" aria-label="Sepetim" className={iconBtn}>

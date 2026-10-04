@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
+import { whatsappHref } from "@/lib/config";
 
 function ResultContent() {
   const params = useSearchParams();
@@ -29,12 +30,28 @@ function ResultContent() {
           : "Ödeme sırasında bir sorun oluştu. Kartına herhangi bir tutar çekilmediyse tekrar deneyebilirsin."}
       </p>
 
-      <Link
-        href={success ? "/hesabim" : "/sepet"}
-        className="inline-block bg-burgundy text-white text-sm font-medium py-3 px-6 hover:bg-burgundy-dark transition-colors"
-      >
-        {success ? "Siparişlerim" : "Sepete Dön"}
-      </Link>
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <Link
+          href={success ? "/hesabim/siparisler" : "/sepet"}
+          className="inline-block bg-burgundy text-white text-sm font-medium py-3 px-6 hover:bg-burgundy-dark transition-colors"
+        >
+          {success ? "Siparişlerim" : "Sepete Dön"}
+        </Link>
+        {!success && (
+          <a
+            href={whatsappHref(
+              orderId
+                ? `Merhaba, AK-${orderId} siparişimin ödemesi tamamlanamadı.`
+                : "Merhaba, ödeme sayfasında sorun yaşadım."
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block border border-[#25D366] text-[#128C7E] text-sm font-medium py-3 px-6 hover:bg-[#25D366]/10"
+          >
+            WhatsApp ile yazın
+          </a>
+        )}
+      </div>
     </main>
   );
 }

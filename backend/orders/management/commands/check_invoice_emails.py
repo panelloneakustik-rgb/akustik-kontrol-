@@ -1,8 +1,8 @@
-"""IMAP: Luca e-Arşiv PDF eklerini sipariş koduna (AK-123) bağlar.
+"""IMAP: TÜRMOB e-fatura PDF eklerini sipariş koduna (AK-123) bağlar.
 
 Operasyon:
-  1. Luca açıklamasına sipariş kodunu yaz (AK-1042)
-  2. PDF'i fatura kutusuna ek alıcı / forward et
+  1. TÜRMOB açıklamasına sipariş kodunu yaz (AK-1042)
+  2. PDF'i fatura kutusuna ilet / BCC
   3. Bu komut 5 dakikada bir çalışır
 
   python manage.py check_invoice_emails --test-connection
@@ -18,21 +18,11 @@ import ssl
 from pathlib import Path
 
 from django.conf import settings
-from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
-from django.utils import timezone
 
-from orders.invoice_mail import (
-    extract_invoice_number,
-    extract_order_codes,
-    extract_pdf_text,
-    get_body_text,
-    iter_pdf_attachments,
-    parse_rfc822,
-    pick_pdf_for_codes,
-    decode_header_value,
-)
-from orders.models import Order
+from orders.invoice_inbox import process_rfc822
+from orders.invoice_mail import extract_invoice_number, extract_order_codes, extract_pdf_text
+from orders.invoice_match import attach_invoice_pdf, find_order
 
 logger = logging.getLogger("orders.invoices")
 
@@ -49,8 +39,8 @@ def _setup_file_logging():
 
 def _imap_settings():
     host = (getattr(settings, "IMAP_HOST", "") or "").strip()
-    user = (getattr(settings, "IMAP_USER", "") or "").strip()
-    password = (getattr(settings, "IMAP_PASSWORD", "") or "").replace(" ", "")
+    user = (getattr(settings, "IMAP_USER", "") or "").strip().strip("'").strip('"')
+    password = (getattr(settings, "IMAP_PASSWORD", "") or "").strip().strip("'").strip('"').replace(" ", "")
     port = int(getattr(settings, "IMAP_PORT", 993) or 993)
     folder = (getattr(settings, "IMAP_FOLDER", "INBOX") or "INBOX").strip()
     processed = (getattr(settings, "IMAP_PROCESSED_FOLDER", "Processed") or "Processed").strip()
@@ -69,7 +59,12 @@ def _connect():
         imap = imaplib.IMAP4_SSL(host, port, ssl_context=ctx)
         imap.login(user, password)
     except imaplib.IMAP4.error as exc:
-        raise CommandError(f"IMAP girişi başarısız: {exc}") from exc
+        raise CommandError(
+            f"IMAP girişi başarısız ({user}, şifre {len(password)} karakter, beklenen 16). "
+            "Gmail’de IMAP açık olsun; uygulama şifresini tırnak içinde yaz: "
+            'IMAP_PASSWORD="xxxxxxxxxxxxxxxx". '
+            f"Google: {exc}"
+        ) from exc
     return imap
 
 
@@ -84,39 +79,8 @@ def _move_uid(imap: imaplib.IMAP4_SSL, uid: bytes, dest: str):
     imap.uid("STORE", uid, "+FLAGS", r"(\Seen \Deleted)")
 
 
-def _find_order(codes: list[str]) -> Order | None:
-    for code in codes:
-        order = Order.objects.filter(order_code__iexact=code).first()
-        if order:
-            return order
-        try:
-            pk = int(code.split("-", 1)[1])
-        except (IndexError, ValueError):
-            continue
-        order = Order.objects.filter(pk=pk).first()
-        if order:
-            return order
-    return None
-
-
-def _attach_pdf(order: Order, filename: str, pdf_bytes: bytes, invoice_no: str, uid_str: str):
-    safe_name = filename.replace("\\", "_").replace("/", "_") or "fatura.pdf"
-    order.invoice_pdf.save(safe_name, ContentFile(pdf_bytes), save=False)
-    order.invoice_number = invoice_no
-    order.invoice_matched_at = timezone.now()
-    order.invoice_email_uid = uid_str
-    order.save(
-        update_fields=[
-            "invoice_pdf",
-            "invoice_number",
-            "invoice_matched_at",
-            "invoice_email_uid",
-        ]
-    )
-
-
 class Command(BaseCommand):
-    help = "Fatura kutusundaki PDF'leri siparişlere bağlar (Luca e-Arşiv)."
+    help = "Fatura kutusundaki PDF'leri siparişlere bağlar (TÜRMOB e-fatura)."
 
     def add_arguments(self, parser):
         parser.add_argument("--test-connection", action="store_true", help="Sadece IMAP girişi ve klasör kontrolü.")
@@ -165,11 +129,11 @@ class Command(BaseCommand):
         except Exception as exc:
             raise CommandError(f"PDF okunamadı: {exc}") from exc
 
-        codes = extract_order_codes(text)
+        codes = extract_order_codes(path.name, text)
         if options["order_code"]:
             codes = [options["order_code"].upper().replace(" ", "")] + codes
 
-        order = _find_order(codes)
+        order = find_order(codes)
         if not order:
             raise CommandError(f"Sipariş bulunamadı. PDF'deki kodlar: {codes or '-'}")
 
@@ -181,7 +145,7 @@ class Command(BaseCommand):
         if order.invoice_pdf and not options["overwrite"]:
             raise CommandError(f"{order.order_code} zaten faturalı. --overwrite kullanın.")
 
-        _attach_pdf(order, path.name, pdf_bytes, invoice_no, uid_str="local-file")
+        attach_invoice_pdf(order, path.name, pdf_bytes, invoice_no, uid_str="local-file")
         msg = f"Yerel PDF bağlandı: {order.order_code}"
         logger.info(msg)
         self.stdout.write(self.style.SUCCESS(msg))
@@ -219,66 +183,25 @@ class Command(BaseCommand):
                     continue
 
                 raw = fetched[0][1]
-                msg = parse_rfc822(raw)
-                subject = decode_header_value(msg.get("Subject"))
-                body = get_body_text(msg)
-                attachments = list(iter_pdf_attachments(msg))
-
-                if not attachments:
-                    logger.warning("UID %s: PDF ek yok (%s)", uid_str, subject)
-                    self.stdout.write(self.style.WARNING(f"UID {uid_str}: PDF ek yok, Unmatched."))
-                    unmatched_n += 1
+                result = process_rfc822(
+                    raw, overwrite=overwrite, uid_str=uid_str, dry_run=dry_run
+                )
+                if result.status == "matched":
+                    matched += 1
                     if not dry_run:
-                        _move_uid(imap, uid, unmatched)
-                    continue
-
-                pdf_texts = []
-                for _name, pdf_bytes in attachments:
-                    try:
-                        pdf_texts.append(extract_pdf_text(pdf_bytes))
-                    except Exception as exc:
-                        logger.warning("UID %s PDF okunamadı: %s", uid_str, exc)
-
-                codes = extract_order_codes(subject, body, *pdf_texts)
-                order = _find_order(codes)
-
-                if not order:
-                    logger.warning("UID %s eşleşmedi subject=%s codes=%s", uid_str, subject, codes)
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f"UID {uid_str} ({subject!r}): sipariş yok. Adaylar: {codes or '-'}"
-                        )
-                    )
-                    unmatched_n += 1
-                    if not dry_run:
-                        _move_uid(imap, uid, unmatched)
-                    continue
-
-                if order.invoice_pdf and not overwrite:
-                    logger.info("UID %s: %s zaten faturalı", uid_str, order.order_code)
+                        _move_uid(imap, uid, processed)
+                    logger.info("%s uid=%s", result.detail, uid_str)
+                    self.stdout.write(self.style.SUCCESS(f"UID {uid_str} {result.detail}"))
+                elif result.status == "skipped":
                     skipped += 1
                     if not dry_run:
                         _move_uid(imap, uid, processed)
-                    continue
-
-                filename, pdf_bytes = pick_pdf_for_codes(attachments, codes)
-                combined_text = "\n".join(pdf_texts)
-                invoice_no = extract_invoice_number(combined_text) or extract_invoice_number(
-                    f"{subject}\n{body}"
-                )
-
-                if dry_run:
-                    self.stdout.write(
-                        f"[dry-run] UID {uid_str} -> {order.order_code} ({filename}, no={invoice_no or '-'})"
-                    )
-                    matched += 1
-                    continue
-
-                _attach_pdf(order, filename, pdf_bytes, invoice_no, uid_str)
-                _move_uid(imap, uid, processed)
-                matched += 1
-                logger.info("Bağlandı %s uid=%s fatura=%s", order.order_code, uid_str, invoice_no)
-                self.stdout.write(self.style.SUCCESS(f"UID {uid_str} bağlandı: {order.order_code}"))
+                    self.stdout.write(f"UID {uid_str}: {result.detail}")
+                else:
+                    unmatched_n += 1
+                    if not dry_run:
+                        _move_uid(imap, uid, unmatched)
+                    self.stdout.write(self.style.WARNING(f"UID {uid_str}: {result.detail}"))
 
             if not dry_run:
                 imap.expunge()

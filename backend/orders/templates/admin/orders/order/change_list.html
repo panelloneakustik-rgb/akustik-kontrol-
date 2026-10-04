@@ -1,0 +1,15 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+<li>
+  <a href="{% url 'admin:orders_order_invoice_inbox' %}" class="viewlink">Fatura kutusu</a>
+</li>
+<li>
+  <a href="{% url 'admin:orders_order_quick_invoice' %}" class="addlink">Toplu e-fatura</a>
+</li>
+<li>
+  <a href="?has_invoice=waiting" class="viewlink">Fatura bekleyenler</a>
+</li>
+{{ block.super }}
+{% endblock %}

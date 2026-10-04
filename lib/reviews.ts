@@ -1,6 +1,5 @@
 import { getAccessToken } from "@/lib/auth";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "https://api.akustikkontrol.com.tr/api";
+import { API_BASE } from "@/lib/config";
 
 export type Review = {
   id: number;

@@ -6,24 +6,28 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from config.session_keys import parse_session_key
-from products.models import Product
+from products.models import Product, ProductVariant
 from .models import Cart, CartItem, Order, OrderItem, ReturnRequest
 from .serializers import CartSerializer, OrderSerializer, ReturnRequestSerializer
 
 
-def _cart_qty_for_product(cart, product, exclude_item_id=None):
-    qs = cart.items.filter(product=product)
+def _cart_qty_for_product(cart, product, variant=None, exclude_item_id=None):
+    qs = cart.items.filter(product=product, variant=variant)
     if exclude_item_id:
         qs = qs.exclude(pk=exclude_item_id)
     return sum(item.quantity for item in qs)
 
 
-def _ensure_stock(cart, product, desired_qty, exclude_item_id=None):
-    other = _cart_qty_for_product(cart, product, exclude_item_id=exclude_item_id)
-    if product.stock <= 0:
-        return f"«{product.name}» stokta yok."
-    if other + desired_qty > product.stock:
-        return f"«{product.name}» için en fazla {product.stock - other} adet eklenebilir."
+def _ensure_stock(cart, product, desired_qty, variant=None, exclude_item_id=None):
+    stock = variant.stock if variant is not None else product.stock
+    label = f"«{product.name}»"
+    if variant and variant.label:
+        label = f"«{product.name}» ({variant.label})"
+    other = _cart_qty_for_product(cart, product, variant=variant, exclude_item_id=exclude_item_id)
+    if stock <= 0:
+        return f"{label} stokta yok."
+    if other + desired_qty > stock:
+        return f"{label} için en fazla {stock - other} adet eklenebilir."
     return None
 
 
@@ -44,18 +48,43 @@ def cart_add_item(request, session_key):
     cart = _get_cart(session_key)
     product = get_object_or_404(Product, pk=request.data.get("product"))
     quantity = int(request.data.get("quantity", 1))
-    variant_note = request.data.get("variant_note", "")
+    color_note = (request.data.get("variant_note") or "").strip()
+    variant = None
+    variant_id = request.data.get("variant")
+    if variant_id not in (None, "", 0, "0"):
+        variant = get_object_or_404(ProductVariant, pk=variant_id, product=product)
+    elif product.variants.count() == 1:
+        variant = product.variants.first()
+    elif product.variants.exists():
+        return Response(
+            {"detail": "Lütfen kalınlık, ebat veya renk seçin."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    note_parts = []
+    if variant and variant.label:
+        note_parts.append(variant.label)
+    if color_note:
+        note_parts.append(color_note)
+    variant_note = " · ".join(note_parts)[:200]
     if quantity < 1:
         return Response({"detail": "Geçersiz adet."}, status=status.HTTP_400_BAD_REQUEST)
 
-    existing = CartItem.objects.filter(cart=cart, product=product, variant_note=variant_note).first()
+    existing = CartItem.objects.filter(
+        cart=cart, product=product, variant=variant, variant_note=variant_note
+    ).first()
     desired = quantity + (existing.quantity if existing else 0)
-    stock_error = _ensure_stock(cart, product, desired, exclude_item_id=existing.pk if existing else None)
+    stock_error = _ensure_stock(
+        cart, product, desired, variant=variant, exclude_item_id=existing.pk if existing else None
+    )
     if stock_error:
         return Response({"detail": stock_error}, status=status.HTTP_400_BAD_REQUEST)
 
     item, created = CartItem.objects.get_or_create(
-        cart=cart, product=product, variant_note=variant_note, defaults={"quantity": quantity}
+        cart=cart,
+        product=product,
+        variant=variant,
+        variant_note=variant_note,
+        defaults={"quantity": quantity},
     )
     if not created:
         item.quantity += quantity
@@ -76,7 +105,9 @@ def cart_item_detail(request, session_key, item_id):
         if quantity <= 0:
             item.delete()
         else:
-            stock_error = _ensure_stock(cart, item.product, quantity, exclude_item_id=item.pk)
+            stock_error = _ensure_stock(
+                cart, item.product, quantity, variant=item.variant, exclude_item_id=item.pk
+            )
             if stock_error:
                 return Response({"detail": stock_error}, status=status.HTTP_400_BAD_REQUEST)
             item.quantity = quantity
@@ -99,14 +130,22 @@ def checkout(request, session_key):
     user = request.user if request.user.is_authenticated else None
 
     with transaction.atomic():
-        items = list(cart.items.select_related("product"))
+        items = list(cart.items.select_related("product", "variant"))
         for cart_item in items:
-            product = Product.objects.select_for_update().get(pk=cart_item.product_id)
-            if product.stock < cart_item.quantity:
-                return Response(
-                    {"detail": f"«{product.name}» stokta kalmadı. Sepeti güncelleyin."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            if cart_item.variant_id:
+                variant = ProductVariant.objects.select_for_update().get(pk=cart_item.variant_id)
+                if variant.stock < cart_item.quantity:
+                    return Response(
+                        {"detail": f"«{cart_item.product.name}» ({variant.label}) stokta kalmadı. Sepeti güncelleyin."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            else:
+                product = Product.objects.select_for_update().get(pk=cart_item.product_id)
+                if product.stock < cart_item.quantity:
+                    return Response(
+                        {"detail": f"«{product.name}» stokta kalmadı. Sepeti güncelleyin."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
         order = Order.objects.create(
             user=user,
@@ -130,8 +169,9 @@ def checkout(request, session_key):
             OrderItem.objects.create(
                 order=order,
                 product=cart_item.product,
+                variant=cart_item.variant,
                 product_name=cart_item.product.name,
-                unit_price=cart_item.product.discounted_price,
+                unit_price=cart_item.unit_price_value,
                 quantity=cart_item.quantity,
                 variant_note=cart_item.variant_note,
             )

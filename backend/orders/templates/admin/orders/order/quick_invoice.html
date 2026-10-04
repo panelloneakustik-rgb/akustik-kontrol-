@@ -1,0 +1,74 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main">
+  <p style="max-width:42rem;line-height:1.55">
+    TÜRMOB’da faturayı kestikten sonra <strong>sipariş seçmene gerek yok</strong>.
+    PDF’i <code>AK-12.pdf</code> diye kaydet <em>veya</em> TÜRMOB açıklamasına
+    <code>AK-12</code> yaz. Bir günde kaç fatura kestiyen hepsini birden seç.
+  </p>
+
+  <form method="post" enctype="multipart/form-data" style="max-width:42rem">
+    {% csrf_token %}
+    <input type="hidden" name="auto_match" value="1">
+    <fieldset class="module aligned">
+      <h2>Toplu bırak (önerilen)</h2>
+      <div class="form-row">
+        <label for="id_pdfs">PDF dosyaları</label>
+        <input type="file" name="invoice_pdfs" id="id_pdfs" accept="application/pdf,.pdf" multiple required>
+      </div>
+      <div class="form-row">
+        <label>
+          <input type="checkbox" name="overwrite" value="1">
+          Var olan faturanın üzerine yaz
+        </label>
+      </div>
+    </fieldset>
+    <div class="submit-row">
+      <input type="submit" class="default" value="Eşleştir ve yükle">
+    </div>
+  </form>
+
+  <form method="post" enctype="multipart/form-data" style="max-width:42rem;margin-top:2rem">
+    {% csrf_token %}
+    <fieldset class="module aligned collapse">
+      <h2>Kod yoksa: siparişi elle seç</h2>
+      <div class="form-row">
+        <label for="id_order">Sipariş</label>
+        <select name="order_id" id="id_order" required style="min-width:22rem">
+          <option value="">Seç…</option>
+          {% if waiting %}
+          <optgroup label="Fatura bekleyen">
+            {% for o in waiting %}
+            <option value="{{ o.pk }}" {% if selected_id == o.pk|stringformat:"s" %}selected{% endif %}>
+              {{ o.order_code }} — {{ o.full_name }} — {{ o.total }} TL
+            </option>
+            {% endfor %}
+          </optgroup>
+          {% endif %}
+          <optgroup label="Faturası var (değiştir)">
+            {% for o in with_invoice %}
+            <option value="{{ o.pk }}" {% if selected_id == o.pk|stringformat:"s" %}selected{% endif %}>
+              {{ o.order_code }} — {{ o.full_name }}
+            </option>
+            {% endfor %}
+          </optgroup>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="id_pdf">PDF dosyası</label>
+        <input type="file" name="invoice_pdf" id="id_pdf" accept="application/pdf,.pdf" required>
+      </div>
+      <div class="form-row">
+        <label for="id_no">Fatura no / ETTN (isteğe bağlı)</label>
+        <input type="text" name="invoice_number" id="id_no" maxlength="64" style="min-width:18rem">
+      </div>
+    </fieldset>
+    <div class="submit-row">
+      <input type="submit" value="Bu siparişe yükle">
+      <a href="{% url 'admin:orders_order_changelist' %}" class="closelink" style="margin-left:1rem">Vazgeç</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

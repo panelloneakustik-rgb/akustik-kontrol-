@@ -1,5 +1,4 @@
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ?? "https://api.akustikkontrol.com.tr/api";
+import { API_BASE } from "@/lib/config";
 
 export type Category = {
   id: number;
@@ -19,8 +18,23 @@ export type ColorSwatch = {
 export type Story = {
   id: number;
   title: string;
-  image: string;
+  image: string | null;
+  video: string | null;
   link_url: string;
+  order: number;
+};
+
+export type ProductVariant = {
+  id: number;
+  label: string;
+  thickness: string;
+  dimensions: string;
+  density: string;
+  color: string;
+  price: string;
+  discount_percent: number;
+  discounted_price: string;
+  stock: number;
   order: number;
 };
 
@@ -28,7 +42,7 @@ export type Product = {
   id: number;
   name: string;
   slug: string;
-  category: string;
+  category: string | { slug: string; name: string };
   image: string | null;
   images: string[];
   price: string;
@@ -37,6 +51,7 @@ export type Product = {
   is_new: boolean;
   is_bestseller: boolean;
   stock: number;
+  option_count?: number;
 };
 
 export type HeroSlide = {
@@ -103,6 +118,7 @@ export async function getProductBySlug(slug: string) {
     related_products: Product[];
     color_swatches: ColorSwatch[];
     shipping_days: string;
+    variants: ProductVariant[];
   }>(`/products/${slug}/`);
 }
 

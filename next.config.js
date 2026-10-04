@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 
 function apiImagePattern() {
-  const raw = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8000/api";
+  const raw = process.env.NEXT_PUBLIC_API_BASE || "https://api.akustikkontrol.com.tr/api";
   try {
     const u = new URL(raw);
     return {
@@ -16,6 +16,8 @@ function apiImagePattern() {
 }
 
 const nextConfig = {
+  allowedDevOrigins: ["127.0.0.1", "localhost", "null", "*.cursor.sh", "*.cursor.com"],
+  skipTrailingSlashRedirect: true,
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -28,9 +30,4 @@ const nextConfig = {
 
 module.exports = nextConfig;
 
-try {
-  const { initOpenNextCloudflareForDev } = require("@opennextjs/cloudflare");
-  initOpenNextCloudflareForDev();
-} catch {
-  // Local/dev without the Cloudflare adapter installed.
-}
+// Skip OpenNext/workerd during `next dev` so the Cursor preview is a plain Next server.

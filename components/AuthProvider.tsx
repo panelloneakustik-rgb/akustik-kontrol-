@@ -1,8 +1,11 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
+  cacheUser,
   fetchMe,
+  getCachedUser,
+  hasSession,
   login as apiLogin,
   register as apiRegister,
   loginWithGoogle as apiLoginWithGoogle,
@@ -26,27 +29,56 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const bootId = useRef(0);
 
   useEffect(() => {
-    fetchMe().then((u) => {
-      setUser(u);
+    const cached = getCachedUser();
+    if (cached && hasSession()) {
+      setUser(cached);
       setLoading(false);
-    });
+    }
+
+    const id = bootId.current;
+    let cancelled = false;
+    fetchMe()
+      .then((u) => {
+        if (cancelled || bootId.current !== id) return;
+        if (u) {
+          setUser(u);
+        } else if (!hasSession()) {
+          setUser(null);
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled || bootId.current !== id) return;
+        if (!hasSession()) setUser(null);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
+    bootId.current += 1;
     const u = await apiLogin(email, password);
     setUser(u);
+    setLoading(false);
   }, []);
 
   const register = useCallback(async (email: string, password: string, fullName: string, passwordConfirm: string) => {
+    bootId.current += 1;
     const u = await apiRegister(email, password, fullName, passwordConfirm);
     setUser(u);
+    setLoading(false);
   }, []);
 
   const loginWithGoogle = useCallback(async (idToken: string) => {
+    bootId.current += 1;
     const u = await apiLoginWithGoogle(idToken);
     setUser(u);
+    setLoading(false);
   }, []);
 
   const updateProfile = useCallback(async (fields: { first_name?: string; last_name?: string }) => {
@@ -55,8 +87,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
+    bootId.current += 1;
     apiLogout();
+    cacheUser(null);
     setUser(null);
+    setLoading(false);
   }, []);
 
   return (

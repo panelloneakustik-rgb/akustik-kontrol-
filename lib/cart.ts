@@ -1,6 +1,5 @@
 import { getAccessToken } from "@/lib/auth";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000/api";
+import { API_BASE } from "@/lib/config";
 const SESSION_KEY_STORAGE = "ndesign_cart_session";
 
 export type CartItem = {
@@ -34,10 +33,12 @@ export function getSessionKey(): string {
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getAccessToken();
+  const hasBody = options?.body != null;
   const res = await fetch(`${API_BASE}${path}`, {
+    cache: "no-store",
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(hasBody ? { "Content-Type": "application/json" } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options?.headers ?? {}),
     },
@@ -49,14 +50,25 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-export function fetchCart(sessionKey: string) {
-  return request<Cart>(`/cart/${sessionKey}/`);
+export function fetchCart(sessionKey: string, signal?: AbortSignal) {
+  return request<Cart>(`/cart/${sessionKey}/`, signal ? { signal } : undefined);
 }
 
-export function addToCart(sessionKey: string, productId: number, quantity = 1, variantNote = "") {
+export function addToCart(
+  sessionKey: string,
+  productId: number,
+  quantity = 1,
+  variantNote = "",
+  variantId?: number | null
+) {
   return request<Cart>(`/cart/${sessionKey}/add/`, {
     method: "POST",
-    body: JSON.stringify({ product: productId, quantity, variant_note: variantNote }),
+    body: JSON.stringify({
+      product: productId,
+      quantity,
+      variant_note: variantNote,
+      ...(variantId ? { variant: variantId } : {}),
+    }),
   });
 }
 

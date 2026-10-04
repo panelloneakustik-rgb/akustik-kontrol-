@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
@@ -7,7 +8,7 @@ from django.core.exceptions import ImproperlyConfigured
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load variables from backend/.env (IYZICO_API_KEY, GOOGLE_CLIENT_ID, etc.)
-load_dotenv(BASE_DIR / ".env", encoding="utf-8-sig")
+load_dotenv(BASE_DIR / ".env", encoding="utf-8-sig", override=True)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
@@ -22,7 +23,7 @@ if not DEBUG and (not SECRET_KEY or SECRET_KEY.startswith("django-insecure")):
 
 ALLOWED_HOSTS = [
     h.strip()
-    for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(",")
     if h.strip()
 ]
 
@@ -60,7 +61,7 @@ CORS_ALLOWED_ORIGINS = [
     o.strip()
     for o in os.environ.get(
         "CORS_ALLOWED_ORIGINS",
-        "http://localhost:3000,http://127.0.0.1:3000",
+        "http://localhost:3000,http://127.0.0.1:3000,http://localhost:43147,http://127.0.0.1:43147,https://akustikkontrol.com.tr,https://www.akustikkontrol.com.tr",
     ).split(",")
     if o.strip()
 ]
@@ -69,7 +70,7 @@ CSRF_TRUSTED_ORIGINS = [
     o.strip()
     for o in os.environ.get(
         "CSRF_TRUSTED_ORIGINS",
-        "http://localhost:3000,http://127.0.0.1:3000",
+        "http://localhost:3000,http://127.0.0.1:3000,http://localhost:43147,http://127.0.0.1:43147,https://akustikkontrol.com.tr,https://www.akustikkontrol.com.tr",
     ).split(",")
     if o.strip()
 ]
@@ -79,9 +80,11 @@ for _host in ALLOWED_HOSTS:
     _origin = f"https://{_host}"
     if _origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(_origin)
+    if _origin not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(_origin)
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024
-FILE_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024
+DATA_UPLOAD_MAX_MEMORY_SIZE = 45 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 40 * 1024 * 1024
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000
 
 _auth = [
@@ -108,6 +111,14 @@ REST_FRAMEWORK = {
         "user": "200/min",
         "login": "8/min",
     },
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=7),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 ROOT_URLCONF = 'config.urls'
@@ -238,11 +249,15 @@ IYZICO_BASE_URL = os.environ.get(
 # Where the backend redirects the browser back to after iyzico's checkout form.
 FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000")
 
-# Luca e-Arşiv PDF'lerinin düşeceği özel IMAP kutusu
+# TÜRMOB e-fatura PDF'lerinin düşeceği özel IMAP kutusu (Gmail uygulama şifresi)
+def _clean_imap_secret(value: str) -> str:
+    return (value or "").strip().strip("'").strip('"').replace(" ", "")
+
+
 IMAP_HOST = os.environ.get("IMAP_HOST", "imap.gmail.com")
 IMAP_PORT = int(os.environ.get("IMAP_PORT", "993"))
-IMAP_USER = (os.environ.get("IMAP_USER") or "").strip()
-IMAP_PASSWORD = (os.environ.get("IMAP_PASSWORD") or "").replace(" ", "")
+IMAP_USER = _clean_imap_secret(os.environ.get("IMAP_USER") or "panellone.akustik@gmail.com")
+IMAP_PASSWORD = _clean_imap_secret(os.environ.get("IMAP_PASSWORD") or "")
 IMAP_FOLDER = os.environ.get("IMAP_FOLDER", "INBOX")
 IMAP_PROCESSED_FOLDER = os.environ.get("IMAP_PROCESSED_FOLDER", "Processed")
 IMAP_UNMATCHED_FOLDER = os.environ.get("IMAP_UNMATCHED_FOLDER", "Unmatched")

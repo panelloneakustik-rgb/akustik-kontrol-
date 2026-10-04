@@ -14,7 +14,7 @@ type CartContextValue = {
   cart: Cart | null;
   itemCount: number;
   loading: boolean;
-  addItem: (productId: number, quantity?: number, variantNote?: string) => Promise<void>;
+  addItem: (productId: number, quantity?: number, variantNote?: string, variantId?: number | null) => Promise<void>;
   updateItem: (itemId: number, quantity: number) => Promise<void>;
   removeItem: (itemId: number) => Promise<void>;
   refresh: () => Promise<void>;
@@ -24,17 +24,25 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<Cart | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const refresh = useCallback(async () => {
     const key = getSessionKey();
-    if (!key) return;
+    if (!key) {
+      setCart(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 6000);
     try {
-      const data = await fetchCart(key);
+      const data = await fetchCart(key, ctrl.signal);
       setCart(data);
     } catch {
-      // Backend not reachable yet -- leave cart empty rather than crash the page.
+      /* keep current cart */
     } finally {
+      clearTimeout(timer);
       setLoading(false);
     }
   }, []);
@@ -43,11 +51,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     refresh();
   }, [refresh]);
 
-  const addItem = useCallback(async (productId: number, quantity = 1, variantNote = "") => {
-  const key = getSessionKey();
-  const data = await apiAddToCart(key, productId, quantity, variantNote);
-  setCart(data);
-}, []);
+  const addItem = useCallback(async (productId: number, quantity = 1, variantNote = "", variantId?: number | null) => {
+    const key = getSessionKey();
+    const data = await apiAddToCart(key, productId, quantity, variantNote, variantId);
+    setCart(data);
+  }, []);
 
   const updateItem = useCallback(async (itemId: number, quantity: number) => {
     const key = getSessionKey();

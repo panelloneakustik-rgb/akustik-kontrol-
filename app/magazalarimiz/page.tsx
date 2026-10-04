@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Phone, MapPin, Clock } from "lucide-react";
+import { whatsappHref } from "@/lib/config";
 
 const STORES = [
   {
@@ -35,6 +36,14 @@ export default function StoresPage() {
               <a href={`tel:${store.phone.replace(/\s/g, "")}`} className="flex items-center gap-3 text-base text-burgundy font-semibold">
                 <Phone size={18} />
                 {store.phone}
+              </a>
+              <a
+                href={whatsappHref(`Merhaba, ${store.name} hakkında yazıyorum.`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-[#128C7E] font-medium hover:underline"
+              >
+                WhatsApp ile yazın
               </a>
               <div className="flex items-center gap-3 text-base text-ink/70">
                 <Clock size={18} className="shrink-0" />

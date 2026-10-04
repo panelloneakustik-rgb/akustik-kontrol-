@@ -12,6 +12,7 @@ import { checkoutCart, getSessionKey, type CheckoutInfo } from "@/lib/cart";
 import { listAddresses, type Address } from "@/lib/addresses";
 import { TURKISH_CITIES } from "@/lib/turkish-cities";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+import FreeShippingBanner from "@/components/FreeShippingBanner";
 
 const EMPTY_FORM: CheckoutInfo = {
   address_title: "",
@@ -34,12 +35,13 @@ const EMPTY_FORM: CheckoutInfo = {
 const inputClass = "border border-ink/20 px-3 py-2.5 text-base sm:text-sm bg-white w-full focus:outline-none focus:border-burgundy";
 
 export default function CartPage() {
-  const { cart, loading, updateItem, removeItem, refresh } = useCart();
+  const { cart, updateItem, removeItem, refresh } = useCart();
   const { user } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState<CheckoutInfo>(EMPTY_FORM);
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
 
   useEffect(() => {
@@ -72,7 +74,7 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     const required: (keyof CheckoutInfo)[] = [
-      "first_name", "last_name", "city", "district", "mobile_phone", "tc_kimlik_no", "address",
+      "first_name", "last_name", "email", "city", "district", "mobile_phone", "tc_kimlik_no", "address",
     ];
     if (required.some((f) => !form[f])) {
       setError("Yıldızlı (*) alanların tamamını doldurman gerekiyor.");
@@ -80,6 +82,10 @@ export default function CartPage() {
     }
     if (form.invoice_type === "company" && (!form.company_name || !form.tax_office || !form.tax_number)) {
       setError("Kurumsal fatura için firma adı, vergi dairesi ve vergi numarası zorunlu.");
+      return;
+    }
+    if (!acceptedTerms) {
+      setError("Mesafeli satış sözleşmesini ve cayma bilgisini onaylaman gerekiyor.");
       return;
     }
     setError(null);
@@ -93,10 +99,6 @@ export default function CartPage() {
       setPlacing(false);
     }
   };
-
-  if (loading) {
-    return <main className="px-4 sm:px-6 lg:px-8 py-16 text-center text-ink/50">Yükleniyor...</main>;
-  }
 
   if (items.length === 0) {
     return (
@@ -128,7 +130,7 @@ export default function CartPage() {
   <div className="flex flex-col">
     <span className="text-lg font-semibold text-ink">{item.product_name}</span>
     {item.variant_note && (
-      <span className="text-xs text-ink/50">Renk: {item.variant_note}</span>
+      <span className="text-xs text-ink/50">Seçenek: {item.variant_note}</span>
     )}
   </div>
   <button
@@ -254,10 +256,31 @@ export default function CartPage() {
         <div className="bg-card p-6 h-fit flex flex-col gap-4">
           <h2 className="font-display text-xl text-ink">Sepet Özeti</h2>
 
-          <div className="flex justify-between text-sm text-ink/70 pb-3 border-b border-ink/10">
+          <div className="flex justify-between text-sm text-ink/70 pb-1">
             <span>Toplam</span>
             <span className="font-bold text-ink text-base">{formatTL(cart?.total ?? "0")}</span>
           </div>
+          <p className="text-xs text-ink/45">KDV dahildir.</p>
+          <FreeShippingBanner compact />
+
+          <label className="flex items-start gap-2 text-xs text-ink/70 leading-relaxed cursor-pointer">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+            />
+            <span>
+              <Link href="/mesafeli-satis-sozlesmesi" className="text-burgundy hover:underline" target="_blank">
+                Mesafeli satış sözleşmesi
+              </Link>
+              {" "}ve{" "}
+              <Link href="/cayma-iade" className="text-burgundy hover:underline" target="_blank">
+                cayma / iade
+              </Link>{" "}
+              koşullarını okudum, onaylıyorum.
+            </span>
+          </label>
 
           {stockBlocked && (
             <p className="text-xs text-burgundy">Stokta olmayan ürünler var. Sepeti güncelleyin.</p>
@@ -265,7 +288,7 @@ export default function CartPage() {
 
           <button
             onClick={handleCheckout}
-            disabled={placing || stockBlocked}
+            disabled={placing || stockBlocked || !acceptedTerms}
             className="bg-burgundy hover:bg-burgundy-dark disabled:opacity-60 text-white text-sm font-medium py-3 transition-colors"
           >
             {placing ? "Yönlendiriliyor..." : "Ödemeye Geç"}

@@ -7,13 +7,16 @@ from .models import Cart, CartItem, Order, OrderItem, ReturnRequest
 class CartItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source="product.name", read_only=True)
     product_image = serializers.SerializerMethodField()
-    unit_price = serializers.DecimalField(source="product.discounted_price", max_digits=10, decimal_places=2, read_only=True)
+    unit_price = serializers.DecimalField(source="unit_price_value", max_digits=10, decimal_places=2, read_only=True)
     subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    stock = serializers.IntegerField(source="product.stock", read_only=True)
+    stock = serializers.IntegerField(source="available_stock", read_only=True)
 
     class Meta:
         model = CartItem
-        fields = ["id", "product", "product_name", "product_image", "unit_price", "quantity", "variant_note", "subtotal", "stock"]
+        fields = [
+            "id", "product", "variant", "product_name", "product_image",
+            "unit_price", "quantity", "variant_note", "subtotal", "stock",
+        ]
 
     def get_product_image(self, obj):
         if not obj.product:

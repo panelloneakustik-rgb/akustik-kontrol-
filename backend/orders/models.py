@@ -3,7 +3,7 @@ from pathlib import Path
 
 from django.db import models
 from django.conf import settings
-from products.models import Product
+from products.models import Product, ProductVariant
 from .storage import PrivateInvoiceStorage
 
 
@@ -30,15 +30,30 @@ class Cart(models.Model):
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, related_name="items", on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    variant = models.ForeignKey(
+        ProductVariant, null=True, blank=True, on_delete=models.SET_NULL, related_name="cart_items"
+    )
     quantity = models.PositiveIntegerField(default=1)
-    variant_note = models.CharField(max_length=100, blank=True, help_text="e.g. selected color code, 'B-130'")
+    variant_note = models.CharField(max_length=200, blank=True, help_text="Seçilen kalınlık / ebat / renk")
 
     class Meta:
-        unique_together = ("cart", "product", "variant_note")
+        unique_together = ("cart", "product", "variant", "variant_note")
+
+    @property
+    def unit_price_value(self):
+        if self.variant_id:
+            return self.variant.discounted_price
+        return self.product.discounted_price
+
+    @property
+    def available_stock(self):
+        if self.variant_id:
+            return self.variant.stock
+        return self.product.stock
 
     @property
     def subtotal(self):
-        return self.product.discounted_price * self.quantity
+        return self.unit_price_value * self.quantity
 
     def __str__(self):
         suffix = f" ({self.variant_note})" if self.variant_note else ""
@@ -172,8 +187,11 @@ class Order(models.Model):
 
         if self.stock_reserved:
             return
-        for item in self.items.select_related("product"):
-            if item.product_id:
+        for item in self.items.select_related("product", "variant"):
+            if item.variant_id:
+                ProductVariant.objects.filter(pk=item.variant_id).update(stock=F("stock") - item.quantity)
+                item.variant.product.sync_from_variants()
+            elif item.product_id:
                 Product.objects.filter(pk=item.product_id).update(stock=F("stock") - item.quantity)
         self.stock_reserved = True
         super().save(update_fields=["stock_reserved"])
@@ -183,8 +201,11 @@ class Order(models.Model):
 
         if not self.stock_reserved:
             return
-        for item in self.items.select_related("product"):
-            if item.product_id:
+        for item in self.items.select_related("product", "variant"):
+            if item.variant_id:
+                ProductVariant.objects.filter(pk=item.variant_id).update(stock=F("stock") + item.quantity)
+                item.variant.product.sync_from_variants()
+            elif item.product_id:
                 Product.objects.filter(pk=item.product_id).update(stock=F("stock") + item.quantity)
         self.stock_reserved = False
         super().save(update_fields=["stock_reserved"])
@@ -197,10 +218,13 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
+    variant = models.ForeignKey(
+        ProductVariant, null=True, blank=True, on_delete=models.SET_NULL, related_name="order_items"
+    )
     product_name = models.CharField(max_length=200)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField(default=1)
-    variant_note = models.CharField(max_length=100, blank=True, help_text="e.g. selected color code, 'B-130'")
+    variant_note = models.CharField(max_length=200, blank=True, help_text="Seçilen kalınlık / ebat / renk")
     @property
     def subtotal(self):
         return self.unit_price * self.quantity

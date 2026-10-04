@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Facebook, Instagram, Twitter, Phone, MapPin } from "lucide-react";
+import { STORE_PHONE_DISPLAY, whatsappHref } from "@/lib/config";
 
 const SOCIAL_LINKS = [
   { label: "Pinterest", href: "https://tr.pinterest.com/akustikkontrol/", icon: "pinterest" as const },
@@ -13,6 +14,8 @@ const LEGAL_LINKS = [
   { label: "Çerez Politikası", href: "/cerez-politikasi" },
   { label: "Gizlilik Politikası", href: "/gizlilik-politikasi" },
   { label: "Aydınlatma Metni", href: "/aydinlatma-metni" },
+  { label: "Mesafeli Satış Sözleşmesi", href: "/mesafeli-satis-sozlesmesi" },
+  { label: "Cayma ve İade", href: "/cayma-iade" },
 ];
 
 function PinterestIcon() {
@@ -64,7 +67,15 @@ export default function Footer() {
         <div className="text-sm text-ink/70 flex flex-col gap-1 items-center md:items-end">
           <a href="tel:+902166302141" className="flex items-center gap-2 text-burgundy font-semibold">
             <Phone size={16} />
-            0 216 630 21 41
+            {STORE_PHONE_DISPLAY}
+          </a>
+          <a
+            href={whatsappHref("Merhaba, akustikkontrol.com.tr üzerinden yazıyorum.")}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-[#128C7E] font-medium hover:underline"
+          >
+            WhatsApp ile yazın
           </a>
           <span className="inline-flex items-start gap-2 text-left">
             <MapPin size={16} className="mt-0.5 shrink-0" />

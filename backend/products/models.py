@@ -128,6 +128,67 @@ class Product(models.Model):
             return round(self.price * (100 - self.discount_percent) / 100, 2)
         return self.price
 
+    def sync_from_variants(self):
+        variants = list(self.variants.all())
+        if not variants:
+            return
+        cheapest = min(variants, key=lambda v: v.discounted_price)
+        first = variants[0]
+        self.stock = sum(v.stock for v in variants)
+        self.price = cheapest.price
+        self.discount_percent = cheapest.discount_percent
+        self.thickness = first.thickness
+        self.dimensions = first.dimensions
+        self.density = first.density
+        self.color = first.color
+        super().save(
+            update_fields=[
+                "stock", "price", "discount_percent",
+                "thickness", "dimensions", "density", "color",
+            ]
+        )
+
+
+class ProductVariant(models.Model):
+    """Same shop page, different thickness / size / color / price / stock."""
+    product = models.ForeignKey(Product, related_name="variants", on_delete=models.CASCADE)
+    thickness = models.CharField(max_length=80, blank=True, verbose_name="Kalınlık")
+    dimensions = models.CharField(max_length=100, blank=True, verbose_name="Ebat")
+    density = models.CharField(max_length=80, blank=True, verbose_name="Yoğunluk")
+    color = models.CharField(max_length=100, blank=True, verbose_name="Renk")
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Fiyat (TL)")
+    discount_percent = models.PositiveIntegerField(default=0, verbose_name="İndirim %")
+    stock = models.PositiveIntegerField(default=0, verbose_name="Stok")
+    order = models.PositiveIntegerField(default=0, verbose_name="Sıra")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Varyant"
+        verbose_name_plural = "Varyantlar (kalınlık, ebat, renk)"
+
+    def __str__(self):
+        return self.label or f"Varyant #{self.pk}"
+
+    @property
+    def label(self):
+        parts = [p for p in (self.thickness, self.dimensions, self.density, self.color) if p]
+        return " · ".join(parts)
+
+    @property
+    def discounted_price(self):
+        if self.discount_percent:
+            return round(self.price * (100 - self.discount_percent) / 100, 2)
+        return self.price
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.product.sync_from_variants()
+
+    def delete(self, *args, **kwargs):
+        product = self.product
+        super().delete(*args, **kwargs)
+        product.sync_from_variants()
+
 
 class ProductImage(models.Model):
     """Extra gallery images for a product (shown on hover-cycle in the product card)."""
@@ -156,16 +217,47 @@ class Favorite(models.Model):
         return f"{self.session_key} ♥ {self.product.name}"
 class Story(models.Model):
     """Instagram-story-style circles shown under the header — independent of Category."""
-    title = models.CharField(max_length=100)
-    image = models.ImageField(upload_to="stories/")
-    link_url = models.CharField(max_length=200, blank=True, help_text="Optional: e.g. /kategori/sungerler")
-    order = models.PositiveIntegerField(default=0)
+    title = models.CharField(max_length=100, verbose_name="Başlık")
+    image = models.ImageField(
+        upload_to="stories/",
+        blank=True,
+        null=True,
+        verbose_name="Kapak / fotoğraf",
+        help_text="Halkada görünür. Sadece video yüklersen boş bırakılabilir.",
+    )
+    video = models.FileField(
+        upload_to="stories/videos/",
+        blank=True,
+        null=True,
+        verbose_name="Video",
+        help_text="MP4 / WebM / MOV. Hikâye açılınca oynar. Mümkünse 40 MB altı.",
+    )
+    link_url = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Bağlantı",
+        help_text="İsteğe bağlı, örn. /kategori/sungerler",
+    )
+    order = models.PositiveIntegerField(default=0, verbose_name="Sıra")
 
     class Meta:
         ordering = ["order", "id"]
+        verbose_name = "Hikâye"
+        verbose_name_plural = "Hikâyeler (Instagram)"
 
     def __str__(self):
         return self.title
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+        if not self.image and not self.video:
+            raise ValidationError("Fotoğraf veya video yükle.")
+        if self.video:
+            name = (self.video.name or "").lower()
+            if not name.endswith((".mp4", ".webm", ".mov", ".m4v")):
+                raise ValidationError({"video": "Video MP4, WebM veya MOV olmalı."})
 
 class HeroSlide(models.Model):
     """One slide in the homepage hero banner carousel."""
