@@ -239,6 +239,20 @@ class Story(models.Model):
         help_text="İsteğe bağlı, örn. /kategori/sungerler",
     )
     order = models.PositiveIntegerField(default=0, verbose_name="Sıra")
+    instagram_id = models.CharField(
+        max_length=64,
+        blank=True,
+        unique=True,
+        null=True,
+        verbose_name="Instagram medya no",
+        help_text="Instagram’dan otomatik gelen gönderiler. Elle boş bırakın.",
+    )
+    source = models.CharField(
+        max_length=20,
+        choices=(("manual", "Elle yüklendi"), ("instagram", "Instagram")),
+        default="manual",
+        verbose_name="Kaynak",
+    )
 
     class Meta:
         ordering = ["order", "id"]
@@ -248,10 +262,17 @@ class Story(models.Model):
     def __str__(self):
         return self.title
 
+    def save(self, *args, **kwargs):
+        if not self.instagram_id:
+            self.instagram_id = None
+        super().save(*args, **kwargs)
+
     def clean(self):
         from django.core.exceptions import ValidationError
 
         super().clean()
+        if self.instagram_id:
+            return
         if not self.image and not self.video:
             raise ValidationError("Fotoğraf veya video yükle.")
         if self.video:

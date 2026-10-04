@@ -249,6 +249,13 @@ IYZICO_BASE_URL = os.environ.get(
 # Where the backend redirects the browser back to after iyzico's checkout form.
 FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000")
 
+# Instagram Graph API — profesyonel hesap + Facebook sayfası + uzun ömürlü token.
+# Boşsa senkronizasyon atlanır; admin’den elle hikâye yüklenir.
+INSTAGRAM_ACCESS_TOKEN = (os.environ.get("INSTAGRAM_ACCESS_TOKEN") or "").strip()
+INSTAGRAM_USER_ID = (os.environ.get("INSTAGRAM_USER_ID") or "").strip()
+INSTAGRAM_GRAPH_VERSION = os.environ.get("INSTAGRAM_GRAPH_VERSION", "v21.0").strip() or "v21.0"
+INSTAGRAM_SYNC_LIMIT = int(os.environ.get("INSTAGRAM_SYNC_LIMIT", "8"))
+
 # TÜRMOB e-fatura PDF'lerinin düşeceği özel IMAP kutusu (Gmail uygulama şifresi)
 def _clean_imap_secret(value: str) -> str:
     return (value or "").strip().strip("'").strip('"').replace(" ", "")

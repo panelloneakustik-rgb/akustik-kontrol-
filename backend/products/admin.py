@@ -1,4 +1,8 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.core.management import call_command
+from django.core.management.base import CommandError
+from django.http import HttpResponseRedirect
+from django.urls import path, reverse
 from django.utils.html import format_html
 
 from .models import Category, Product, ProductImage, Story, HeroSlide, ColorSwatch, Review, ProductVariant
@@ -128,10 +132,42 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Story)
 class StoryAdmin(admin.ModelAdmin):
-    list_display = ("thumb", "title", "has_video", "link_url", "order")
+    change_list_template = "admin/products/story/change_list.html"
+    list_display = ("thumb", "title", "has_video", "source", "link_url", "order")
     list_editable = ("order",)
     list_display_links = ("thumb", "title")
-    fields = ("title", "image", "video", "link_url", "order")
+    list_filter = ("source",)
+    fields = ("title", "image", "video", "link_url", "order", "source", "instagram_id")
+    readonly_fields = ("source", "instagram_id")
+
+    def get_urls(self):
+        custom = [
+            path(
+                "instagram-sync/",
+                self.admin_site.admin_view(self.instagram_sync_view),
+                name="products_story_instagram_sync",
+            ),
+        ]
+        return custom + super().get_urls()
+
+    def instagram_sync_view(self, request):
+        from io import StringIO
+
+        if not self.has_change_permission(request):
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+        buf = StringIO()
+        try:
+            call_command("sync_instagram_stories", stdout=buf)
+            text = (buf.getvalue() or "").strip()
+            if "INSTAGRAM_ACCESS_TOKEN" in text:
+                self.message_user(request, text, messages.WARNING)
+            else:
+                self.message_user(request, text or "Instagram hikâyeleri güncellendi.", messages.SUCCESS)
+        except CommandError as exc:
+            self.message_user(request, str(exc), messages.ERROR)
+        return HttpResponseRedirect(reverse("admin:products_story_changelist"))
 
     def thumb(self, obj):
         if obj.image:

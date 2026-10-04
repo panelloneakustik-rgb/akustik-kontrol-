@@ -224,12 +224,23 @@ export default function CategoryBar({ stories }: { stories: Story[] }) {
             <div className="absolute bottom-0 inset-x-0 z-20 p-4 bg-gradient-to-t from-black/80 to-transparent flex flex-col gap-3 pointer-events-none">
               <h3 className="font-display text-2xl">{active.title}</h3>
               {active.link_url && (
-                <Link
-                  href={active.link_url}
-                  className="pointer-events-auto self-start bg-white text-ink text-sm font-medium py-2 px-4 hover:bg-cream"
-                >
-                  İncele
-                </Link>
+                active.link_url.startsWith("http") ? (
+                  <a
+                    href={active.link_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pointer-events-auto self-start bg-white text-ink text-sm font-medium py-2 px-4 hover:bg-cream"
+                  >
+                    Instagram’da aç
+                  </a>
+                ) : (
+                  <Link
+                    href={active.link_url}
+                    className="pointer-events-auto self-start bg-white text-ink text-sm font-medium py-2 px-4 hover:bg-cream"
+                  >
+                    İncele
+                  </Link>
+                )
               )}
             </div>
           </div>
