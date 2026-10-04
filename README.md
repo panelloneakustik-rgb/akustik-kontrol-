@@ -16,6 +16,8 @@ WhatsApp vitrinden şimdilik kaldırıldı. Telefon `0 216 630 21 41` (`lib/conf
 Instagram hikâyeleri: profesyonel IG hesabı + Graph API token (`INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID`) olunca admin **Hikâyeler → Instagram’dan çek** son gönderi/reels/hikâyeleri site halkalarına yazar. Token yoksa elle yükleme durur.
 
 
+Müşteri vitrinde stok en fazla **Son 5 ürün** olarak görünür; gerçek depo adedi yalnızca adminde kalır. Sepete de en fazla 5 adet eklenir.
+
 Aynı ürünün kalınlık / ebat / renk farkları **bir ürün sayfasında varyant** olarak durur. Admin → Ürünler içinde her satır bir seçenektir (fiyat ve stok ayrı). Kartta birden fazla seçenek varsa “Seçenekleri gör” çıkar.
 
 Kart ödemesi (Iyzico) ve e-fatura IMAP şu an durduruldu; ödeme açılamazsa sipariş numarasıyla telefon yönlendirmesi çıkar.

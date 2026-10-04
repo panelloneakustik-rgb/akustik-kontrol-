@@ -9,6 +9,7 @@ import AddToCartBox from "@/components/AddToCartBox";
 import FreeShippingBanner from "@/components/FreeShippingBanner";
 import RelatedProducts from "@/components/RelatedProducts";
 import ProductReviews from "@/components/ProductReviews";
+import { customerStockLabel } from "@/lib/stock";
 
 type Detail = Awaited<ReturnType<typeof getProductBySlug>>;
 
@@ -159,7 +160,7 @@ export default function ProductDetailClient({
           )}
 
           <p className="text-xs text-ink/50">
-            {displayStock > 0 ? `Stokta ${displayStock} adet` : "Stokta yok"}
+            {customerStockLabel(displayStock)}
           </p>
 
           <AddToCartBox
