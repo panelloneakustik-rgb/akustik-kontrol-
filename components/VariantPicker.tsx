@@ -76,7 +76,7 @@ export default function VariantPicker({
           <div className="flex flex-wrap gap-2">
             {axis.values.map((value) => {
               const active = selected?.[axis.key] === value;
-              const possible = variants.some((v) => v[axis.key] === value && v.stock > 0);
+              const possible = variants.some((v) => v[axis.key] === value && v.stock !== 0);
               return (
                 <button
                   key={value}

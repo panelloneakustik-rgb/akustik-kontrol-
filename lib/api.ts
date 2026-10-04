@@ -34,7 +34,7 @@ export type ProductVariant = {
   price: string;
   discount_percent: number;
   discounted_price: string;
-  stock: number;
+  stock: number | null;
   order: number;
 };
 
@@ -50,7 +50,7 @@ export type Product = {
   discounted_price: string;
   is_new: boolean;
   is_bestseller: boolean;
-  stock: number;
+  stock: number | null;
   option_count?: number;
 };
 
@@ -107,7 +107,7 @@ export async function searchProducts(query: string) {
 export async function getProductBySlug(slug: string) {
   return getJSON<Product & {
     description: string;
-    stock: number;
+    stock: number | null;
     dimensions: string;
     density: string;
     thickness: string;

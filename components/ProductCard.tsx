@@ -8,6 +8,7 @@ import type { Product } from "@/lib/api";
 import { formatTL } from "@/lib/api";
 import { useCart } from "@/components/CartProvider";
 import { useFavorites } from "@/components/FavoritesProvider";
+import { isOutOfStock } from "@/lib/stock";
 
 const CYCLE_MS = 900;
 
@@ -142,11 +143,11 @@ export default function ProductCard({ product }: { product: Product }) {
         ) : (
         <button
           onClick={handleAddToCart}
-          disabled={adding || product.stock <= 0}
+          disabled={adding || isOutOfStock(product.stock)}
           className="w-full flex items-center justify-center gap-2 bg-burgundy hover:bg-burgundy-dark disabled:opacity-60 text-white text-xs sm:text-sm font-medium py-3 min-h-11 transition-colors"
         >
           {added ? <Check size={16} /> : <ShoppingCart size={16} />}
-          {product.stock <= 0 ? "Stokta yok" : added ? "Eklendi" : "Sepete Ekle"}
+          {isOutOfStock(product.stock) ? "Stokta yok" : added ? "Eklendi" : "Sepete Ekle"}
         </button>
         )}
       </div>

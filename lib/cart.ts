@@ -11,7 +11,7 @@ export type CartItem = {
   quantity: number;
   subtotal: string;
   variant_note: string;
-  stock: number;
+  stock: number | null;
 };
 
 export type Cart = {

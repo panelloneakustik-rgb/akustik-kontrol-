@@ -7,7 +7,7 @@ import ColorSwatchPicker from "./ColorSwatchPicker";
 import VariantPicker from "./VariantPicker";
 import { useCart } from "@/components/CartProvider";
 import type { ColorSwatch, ProductVariant } from "@/lib/api";
-import { customerVisibleStock } from "@/lib/stock";
+import { customerMaxQty } from "@/lib/stock";
 
 export default function AddToCartBox({
   productId,
@@ -40,7 +40,7 @@ export default function AddToCartBox({
 
   const stockCap = useMemo(() => {
     const v = variants.find((x) => x.id === variantId);
-    return customerVisibleStock(v ? v.stock : maxQty);
+    return customerMaxQty(v ? v.stock : maxQty);
   }, [variants, variantId, maxQty]);
 
   const chooseVariant = (id: number) => {

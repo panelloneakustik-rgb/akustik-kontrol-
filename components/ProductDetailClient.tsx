@@ -9,7 +9,7 @@ import AddToCartBox from "@/components/AddToCartBox";
 import FreeShippingBanner from "@/components/FreeShippingBanner";
 import RelatedProducts from "@/components/RelatedProducts";
 import ProductReviews from "@/components/ProductReviews";
-import { customerStockLabel } from "@/lib/stock";
+import { customerMaxQty, customerStockLabel, isPurchasable } from "@/lib/stock";
 
 type Detail = Awaited<ReturnType<typeof getProductBySlug>>;
 
@@ -54,7 +54,7 @@ export default function ProductDetailClient({
     }
     setVariantId((current) => {
       if (current && list.some((v) => v.id === current)) return current;
-      return (list.find((v) => v.stock > 0) ?? list[0]).id;
+      return (list.find((v) => isPurchasable(v.stock)) ?? list[0]).id;
     });
   }, [product]);
 
@@ -93,7 +93,8 @@ export default function ProductDetailClient({
   const displayPrice = selected?.price ?? product.price;
   const displayDiscounted = selected?.discounted_price ?? product.discounted_price;
   const displayDiscount = selected?.discount_percent ?? product.discount_percent;
-  const displayStock = selected?.stock ?? product.stock;
+  const displayStock = selected ? selected.stock : product.stock;
+  const stockLine = customerStockLabel(displayStock);
   const specs = [
     { label: "Model", value: product.product_model },
     { label: "Kalınlık", value: selected?.thickness || product.thickness },
@@ -159,13 +160,13 @@ export default function ProductDetailClient({
             </table>
           )}
 
-          <p className="text-xs text-ink/50">
-            {customerStockLabel(displayStock)}
-          </p>
+          {stockLine && (
+            <p className="text-xs text-ink/50">{stockLine}</p>
+          )}
 
           <AddToCartBox
             productId={product.id}
-            maxQty={displayStock || 0}
+            maxQty={customerMaxQty(displayStock)}
             colorSwatches={product.color_swatches}
             variants={variants}
             selectedVariantId={variantId}

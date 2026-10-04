@@ -9,6 +9,7 @@ import { useCart } from "@/components/CartProvider";
 import { useAuth } from "@/components/AuthProvider";
 import { formatTL } from "@/lib/api";
 import { checkoutCart, getSessionKey, type CheckoutInfo } from "@/lib/cart";
+import { customerMaxQty, isOutOfStock } from "@/lib/stock";
 import { listAddresses, type Address } from "@/lib/addresses";
 import { TURKISH_CITIES } from "@/lib/turkish-cities";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
@@ -66,7 +67,11 @@ export default function CartPage() {
   };
 
   const items = cart?.items ?? [];
-  const stockBlocked = items.some((item) => item.quantity > (item.stock ?? 0) || (item.stock ?? 0) <= 0);
+  const stockBlocked = items.some((item) => {
+    if (isOutOfStock(item.stock)) return true;
+    if (typeof item.stock === "number" && item.stock > 0 && item.quantity > item.stock) return true;
+    return false;
+  });
 
   const set = (field: keyof CheckoutInfo) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -152,8 +157,8 @@ export default function CartPage() {
                   </button>
                   <span className="w-10 text-center text-base">{item.quantity}</span>
                   <button
-                    onClick={() => updateItem(item.id, Math.min(item.stock || item.quantity, item.quantity + 1))}
-                    disabled={item.quantity >= (item.stock ?? 0)}
+                    onClick={() => updateItem(item.id, Math.min(customerMaxQty(item.stock), item.quantity + 1))}
+                    disabled={isOutOfStock(item.stock) || (typeof item.stock === "number" && item.stock > 0 && item.quantity >= item.stock)}
                     className="w-9 h-9 flex items-center justify-center hover:bg-white transition-colors text-base disabled:opacity-40"
                   >
                     +
@@ -161,8 +166,8 @@ export default function CartPage() {
                 </div>
                 <span className="text-lg font-bold text-ink">{formatTL(item.subtotal)}</span>
               </div>
-              {(item.stock ?? 0) <= 0 && <p className="text-xs text-burgundy">Bu ürün stokta yok.</p>}
-              {(item.stock ?? 0) > 0 && item.quantity > item.stock && (
+              {isOutOfStock(item.stock) && <p className="text-xs text-burgundy">Bu ürün stokta yok.</p>}
+              {typeof item.stock === "number" && item.stock > 0 && item.quantity > item.stock && (
                 <p className="text-xs text-burgundy">Stok yetersiz (en fazla {item.stock}).</p>
               )}
             </div>
